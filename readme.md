@@ -23,10 +23,10 @@ Here’s why you should use **Blixx**:
 noConversion - means it parses into our tree  
 withConversion - means it converts to adventure post parsing  
 ```text
-Benchmark                                   Mode  Cnt       Score      Error  Units
-MiniMessageBench.blixxNoConversion          avgt    5   27168.283 ± 1713.271  ns/op
-MiniMessageBench.blixxWithConversion        avgt    5   29380.644 ±  373.988  ns/op
-MiniMessageBench.miniMessageNoPlaceholders  avgt    5  342239.584 ± 9614.071  ns/op
+Benchmark                                   Mode  Cnt       Score   Error  Units
+MiniMessageBench.blixxNoConversion          avgt        22503.139          ns/op
+MiniMessageBench.blixxWithConversion        avgt        24387.205          ns/op
+MiniMessageBench.miniMessageNoPlaceholders  avgt       322240.506          ns/op
 ```
 
 ## Placeholders
