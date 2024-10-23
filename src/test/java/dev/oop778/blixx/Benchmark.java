@@ -7,6 +7,8 @@ import lombok.SneakyThrows;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.concurrent.TimeUnit;
+import java.util.function.UnaryOperator;
 
 public class Benchmark {
     private static final String INPUT = """
@@ -37,18 +39,24 @@ public class Benchmark {
         long startTime = System.currentTimeMillis();
         while (System.currentTimeMillis() - startTime < WARMUP_TIME_SECONDS * 1000) {
             final BlixxComponent parse = blixx.parse(INPUT);
-            parse.asComponent();
+            UnaryOperator.identity().apply(parse.asComponent());
         }
 
         System.out.println("warmup done");
         final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         reader.readLine();
 
-
         System.out.println("starting benchmark");
         startTime = System.currentTimeMillis();
+        int times = 0;
         while (System.currentTimeMillis() - startTime < RUN_TIME_SECONDS * 1000) {
-            final BlixxComponent parse = blixx.parse(INPUT);
+            UnaryOperator.identity().apply(blixx.parse(INPUT));
+            times++;
         }
+
+        System.out.println("completed %s times".formatted(times));
+        System.out.println("%.4f ns/op".formatted(
+                (RUN_TIME_SECONDS / (double) times) * TimeUnit.SECONDS.toNanos(1)
+        ));
     }
 }
