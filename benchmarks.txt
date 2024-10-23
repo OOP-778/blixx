@@ -1,0 +1,39 @@
+V1
+Benchmark                                   Mode  Cnt       Score   Error  Units
+MiniMessageBench.blixxNoConversion          avgt        27214.004          ns/op
+MiniMessageBench.blixxWithConversion        avgt        30618.523          ns/op
+MiniMessageBench.miniMessageNoPlaceholders  avgt       331675.776          ns/op
+completed 362,299 times
+27601.5115 ns/op
+
+V2
+Benchmark                                   Mode  Cnt       Score   Error  Units
+MiniMessageBench.blixxNoConversion          avgt        27042.100          ns/op
+MiniMessageBench.blixxWithConversion        avgt        30626.930          ns/op
+MiniMessageBench.miniMessageNoPlaceholders  avgt       312750.969          ns/op
+completed 370,512 times
+26989.6791 ns/op
+
+V3
+Benchmark                                   Mode  Cnt       Score   Error  Units
+MiniMessageBench.blixxNoConversion          avgt        22159.435          ns/op
+MiniMessageBench.blixxWithConversion        avgt        23843.760          ns/op
+MiniMessageBench.miniMessageNoPlaceholders  avgt       342503.595          ns/op
+completed 439,655 times
+22745.1070 ns/op
+
+V4
+Benchmark                                   Mode  Cnt       Score   Error  Units
+MiniMessageBench.blixxNoConversion          avgt        20585.490          ns/op
+MiniMessageBench.blixxWithConversion        avgt        23230.285          ns/op
+MiniMessageBench.miniMessageNoPlaceholders  avgt       323748.707          ns/op
+completed 466,229 times
+21448.6872 ns/op
+
+V5
+Benchmark                                   Mode  Cnt       Score   Error  Units
+MiniMessageBench.blixxNoConversion          avgt        20026.217          ns/op
+MiniMessageBench.blixxWithConversion        avgt        21302.531          ns/op
+MiniMessageBench.miniMessageNoPlaceholders  avgt       323573.625          ns/op
+completed 518,748 times
+19277.1828 ns/op
