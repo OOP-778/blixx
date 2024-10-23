@@ -1,9 +1,9 @@
 package dev.oop778.blixx.api.parser;
 
 import dev.oop778.blixx.api.Blixx;
-import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.tag.BlixxProcessor;
 import dev.oop778.blixx.api.tag.BlixxTag;
+import dev.oop778.blixx.api.util.FastComponentBuilder;
 import dev.oop778.blixx.util.StyleBuilder;
 import lombok.Getter;
 import lombok.Setter;
@@ -98,8 +98,11 @@ public class BlixxNodeImpl {
                 continue;
             }
 
+            final FastComponentBuilder componentBuilder = new FastComponentBuilder();
+            componentBuilder.setContent(node.getContent());
+
             context.setStyleBuilder(new StyleBuilder());
-            context.setComponentBuilder(Component.text().content(node.getContent()));
+            context.setComponentBuilder(componentBuilder);
 
             for (final BlixxTag.WithDefinedData<?> tag : node.getTags()) {
                 context.setData(tag.getDefinedData());
@@ -114,8 +117,8 @@ public class BlixxNodeImpl {
                 }
             }
 
-            context.getComponentBuilder().style(context.getStyleBuilder().build());
-            rootBuilder.append(context.getComponentBuilder().build());
+            componentBuilder.setStyle(context.getStyleBuilder().build());
+            rootBuilder.append(componentBuilder.build());
         }
 
         return rootBuilder.build();
@@ -135,9 +138,21 @@ public class BlixxNodeImpl {
         return this.tags != null && this.tags.stream().anyMatch(tag -> tag.compareWithData(parsedTag));
     }
 
+    public void parseIntoAdventure(Blixx blixx) {
+        if (this.adventureComponent != null) {
+            return;
+        }
+
+
+        this.adventureComponent = this.buildAdventure(blixx);
+    }
+
     protected Component buildAdventure(Blixx blixx) {
         final BlixxProcessor.Component.ComponentContext context = BlixxProcessor.Component.ComponentContext.builder().blixx(blixx).build();
-        context.setComponentBuilder(Component.text().content(this.content));
+        final FastComponentBuilder componentBuilder = new FastComponentBuilder();
+        componentBuilder.setContent(this.content);
+
+        context.setComponentBuilder(componentBuilder);
         context.setStyleBuilder(new StyleBuilder());
 
         for (final BlixxTag.WithDefinedData<?> tag : this.getTags()) {
@@ -154,17 +169,8 @@ public class BlixxNodeImpl {
         }
 
         final Style build = context.getStyleBuilder().build();
-        context.getComponentBuilder().style(build);
+        componentBuilder.setStyle(build);
 
-        return context.getComponentBuilder().build();
-    }
-
-    public void parseIntoAdventure(Blixx blixx) {
-        if (this.adventureComponent != null) {
-            return;
-        }
-
-
-        this.adventureComponent = this.buildAdventure(blixx);
+        return componentBuilder.build();
     }
 }

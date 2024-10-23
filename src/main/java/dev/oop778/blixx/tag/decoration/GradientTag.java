@@ -2,6 +2,7 @@ package dev.oop778.blixx.tag.decoration;
 
 import dev.oop778.blixx.api.tag.BlixxProcessor;
 import dev.oop778.blixx.api.tag.BlixxTag;
+import dev.oop778.blixx.api.util.FastComponentBuilder;
 import dev.oop778.blixx.text.argument.BaseArgumentQueue;
 import lombok.Data;
 import lombok.NonNull;
@@ -58,7 +59,7 @@ public class GradientTag implements ColorChangingTag<GradientTag.GradientTagData
         @Override
         public void visit(@NonNull ComponentContext context) {
             final GradientTagData data = context.getData();
-            final String content = context.getComponentBuilder().content();
+            final String content = context.getComponentBuilder().getContent();
             if (content.isEmpty() || data.getColors().length == 0) {
                 return;
             }
@@ -73,7 +74,7 @@ public class GradientTag implements ColorChangingTag<GradientTag.GradientTagData
             float position = phase / totalCharacters;
             final int maxColorIndex = colorCount - 1;
 
-            final TextComponent.Builder builder = context.getComponentBuilder();
+            final FastComponentBuilder builder = context.getComponentBuilder();
 
             TextColor lastInterpolatedColor = null;
             Style lastStyle = null;
@@ -105,7 +106,7 @@ public class GradientTag implements ColorChangingTag<GradientTag.GradientTagData
                 position += deltaPosition;
             }
 
-            builder.content("");
+            builder.setContent("");
         }
 
         protected TextColor interpolateColor(TextColor startColor, TextColor endColor, float factor) {

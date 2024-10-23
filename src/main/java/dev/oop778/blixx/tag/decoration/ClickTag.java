@@ -7,9 +7,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.format.Style;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.UnknownNullability;
 
 public class ClickTag implements BlixxTag<ClickTag.Action> {
     public static final ClickTag INSTANCE = new ClickTag();
@@ -35,7 +33,6 @@ public class ClickTag implements BlixxTag<ClickTag.Action> {
     }
 
     public static class Processor implements BlixxProcessor.Component.Decorator<Action> {
-
         @Override
         public void decorate(@NonNull ComponentContext context) {
             final Action data = context.getData();
