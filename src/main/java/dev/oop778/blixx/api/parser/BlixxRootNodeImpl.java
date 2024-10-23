@@ -4,10 +4,10 @@ import dev.oop778.blixx.api.Blixx;
 import dev.oop778.blixx.api.parser.config.ParserConfig;
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
+import dev.oop778.blixx.api.util.Pair;
 import lombok.RequiredArgsConstructor;
 
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
@@ -15,6 +15,7 @@ public class BlixxRootNodeImpl extends BlixxNodeImpl {
     private final String input;
     private final Map<String, List<BlixxNodeImpl>> placeholderToNode = new HashMap<>();
     private final Map<BlixxNodeImpl, List<String>> nodeToPlaceholder = new IdentityHashMap<>();
+    private static final Pattern PLACEHOLDER_INSIDE_PATTERN = Pattern.compile("[a-zA-Z_0-9]+");
 
     @Override
     public String toString() {
@@ -28,23 +29,29 @@ public class BlixxRootNodeImpl extends BlixxNodeImpl {
             return;
         }
 
-        boolean containsPlaceholder = false;
-        for (final Character placeholderCharacter : parserConfig.placeholderCharacters()) {
-            if (content.indexOf(placeholderCharacter) != -1) {
-                containsPlaceholder = true;
-                break;
-            }
-        }
+        for (final Pair<Character, Character> placeholderFormat : parserConfig.placeholderFormats()) {
+            final char start = placeholderFormat.getLeft();
+            final char end = placeholderFormat.getRight();
 
-        if (!containsPlaceholder) {
-            return;
-        }
+            int pos = 0;
+            while (pos < content.length()) {
+                final int startIndex = content.indexOf(start, pos);
+                if (startIndex == -1) {
+                    break;
+                }
 
-        for (final Pattern placeholder : parserConfig.placeholderPatterns()) {
-            final Matcher matcher = placeholder.matcher(content);
-            while (matcher.find()) {
-                this.placeholderToNode.computeIfAbsent(matcher.group(1), $ -> new ArrayList<>(2)).add(node);
-                this.nodeToPlaceholder.computeIfAbsent(node, $ -> new ArrayList<>(2)).add(matcher.group(1));
+                final int endIndex = content.indexOf(end, startIndex + 1);
+                if (endIndex == -1) {
+                    break;
+                }
+
+                final String placeholder = content.substring(startIndex + 1, endIndex);
+                if (!placeholder.isEmpty() && PLACEHOLDER_INSIDE_PATTERN.matcher(placeholder).matches()) {
+                    this.placeholderToNode.computeIfAbsent(placeholder, $ -> new ArrayList<>(2)).add(node);
+                    this.nodeToPlaceholder.computeIfAbsent(node, $ -> new ArrayList<>(2)).add(placeholder);
+                }
+
+                pos = endIndex + 1;
             }
         }
     }
@@ -60,9 +67,9 @@ public class BlixxRootNodeImpl extends BlixxNodeImpl {
                         continue;
                     }
 
-                    final Object o = blixxPlaceholder.get(PlaceholderContext.create());
+                    final Object value = blixxPlaceholder.get(PlaceholderContext.create());
                     for (final BlixxNodeImpl node : entry.getValue()) {
-                        node.setContent(node.getContent().replace(placeholder, o.toString()));
+                        node.setContent(node.getContent().replace(placeholder, String.valueOf(value)));
                     }
                 }
             }
