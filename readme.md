@@ -3,6 +3,9 @@
 ![Static Badge](https://img.shields.io/badge/Java_version-8-brightgreene)
 ![Scc Count Badge](https://sloc.xyz/github/oop-778/blixx?category=code)
 
+## Note
+Currently Blixx is still in development...
+
 ## Why Blixx?
 
 Adventure's MiniMessage has its limitations and flaws. **Blixx** is built to be a blazing-fast, more feature-packed alternative that solves these issues.
