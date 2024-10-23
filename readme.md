@@ -28,3 +28,29 @@ MiniMessageBench.blixxNoConversion          avgt    5   27168.283 ± 1713.271  n
 MiniMessageBench.blixxWithConversion        avgt    5   29380.644 ±  373.988  ns/op
 MiniMessageBench.miniMessageNoPlaceholders  avgt    5  342239.584 ± 9614.071  ns/op
 ```
+
+## Placeholders
+Blixx offers highly robust & flexible placeholder system that allows you to optimize your replacements with ease with caching.
+Here's an overview of the fluent placeholder builder
+
+Here's an example of parse time placeholder that allows you to create project wide color scheme.
+```java
+BlixxPlaceholder.<String>builder()
+                                .contextual()
+                                .withExact(ColorScheme.class)
+                                .pattern()
+                                .withPattern(Pattern.compile("\\{([a-z]+)_color(?:_([1-9]))?}"))
+                                .withContextAndMatcherSupplying((context, matcher) -> {
+                                    // main color
+                                    if (matcher.group(2) == null) {
+                                        return context.getHexColor(matcher.group(1), 0);
+                                    }
+
+                                    // Shaded color
+                                    return context.getHexColor(matcher.group(1), Integer.parseInt(matcher.group(2)));
+                                })
+                                .build()
+```
+```aiignore
+{primary_color}Prefix> {secondary_color}<italic>Hello {secondary_color_5}World
+```
