@@ -12,9 +12,9 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
 @State(Scope.Benchmark)
-@Warmup(iterations = 1, time = 5)
-@Threads(value = 5)
+@Warmup(iterations = 1, time = 2)
 @Fork(value = 1)
+@Measurement(iterations = 1, time = 10)
 public class MiniMessageBench {
     private Blixx blixxParser;
     private MiniMessage miniMessageParser;
