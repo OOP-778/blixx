@@ -24,9 +24,9 @@ noConversion - means it parses into our tree
 withConversion - means it converts to adventure post parsing  
 ```text
 Benchmark                                   Mode  Cnt       Score   Error  Units
-MiniMessageBench.blixxNoConversion          avgt        22503.139          ns/op
-MiniMessageBench.blixxWithConversion        avgt        24387.205          ns/op
-MiniMessageBench.miniMessageNoPlaceholders  avgt       322240.506          ns/op
+MiniMessageBench.blixxNoConversion          avgt        20026.217          ns/op
+MiniMessageBench.blixxWithConversion        avgt        21302.531          ns/op
+MiniMessageBench.miniMessageNoPlaceholders  avgt       323573.625          ns/op
 ```
 
 ## Placeholders
