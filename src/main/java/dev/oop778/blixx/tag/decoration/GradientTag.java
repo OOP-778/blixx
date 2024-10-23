@@ -9,7 +9,6 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.UnknownNullability;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,35 +66,46 @@ public class GradientTag implements ColorChangingTag<GradientTag.GradientTagData
             final TextColor[] colors = data.getColors();
             final float phase = data.getPhase();
             final int colorCount = colors.length;
+            final int length = content.length();
 
-            int visibleCharIndex = 0; // Tracks non-space/non-newline characters for interpolation
+            final int totalCharacters = Math.max(1, length - 1);
+            final float deltaPosition = 1.0f / totalCharacters;
+            float position = phase / totalCharacters;
+            final int maxColorIndex = colorCount - 1;
 
-            for (int i = 0; i < content.length(); i++) {
+            final TextComponent.Builder builder = context.getComponentBuilder();
+
+            TextColor lastInterpolatedColor = null;
+            Style lastStyle = null;
+
+            for (int i = 0; i < length; i++) {
                 final char currentChar = content.charAt(i);
 
-                // Skip spaces and newline characters
                 if (Character.isWhitespace(currentChar)) {
-                    // Append the whitespace character without applying any color
-                    context.getComponentBuilder().append(net.kyori.adventure.text.Component.text(currentChar));
+                    builder.append(net.kyori.adventure.text.Component.text(currentChar));
                     continue;
                 }
 
-                // Perform interpolation only on non-whitespace characters
-                final float position = (visibleCharIndex + phase) / (float) (content.length() - 1);
-                final int startColorIndex = (int) (position * (colorCount - 1));
-                final int endColorIndex = Math.min(startColorIndex + 1, colorCount - 1);
+                final float adjustedPosition = position * maxColorIndex;
+                final int startColorIndex = (int) adjustedPosition;
+                final int endColorIndex = Math.min(startColorIndex + 1, maxColorIndex);
 
-                final float interpolation = position * (colorCount - 1) - startColorIndex;
-                final TextColor interpolatedColor = this.interpolateColor(colors[startColorIndex], colors[endColorIndex], interpolation);
+                final float interpolation = adjustedPosition - startColorIndex;
+                final TextColor interpolatedColor = this.interpolateColor(
+                        colors[startColorIndex], colors[endColorIndex], interpolation);
 
-                // Apply the color to the current character
-                context.getComponentBuilder().append(net.kyori.adventure.text.Component.text(currentChar, Style.style(interpolatedColor)));
+                if (interpolatedColor.equals(lastInterpolatedColor)) {
+                    builder.append(net.kyori.adventure.text.Component.text(currentChar, lastStyle));
+                } else {
+                    lastInterpolatedColor = interpolatedColor;
+                    lastStyle = Style.style(interpolatedColor);
+                    builder.append(net.kyori.adventure.text.Component.text(currentChar, lastStyle));
+                }
 
-                // Increment only when a visible character is processed
-                visibleCharIndex++;
+                position += deltaPosition;
             }
 
-            context.getComponentBuilder().content("");  // Clear the original content in the builder
+            builder.content("");
         }
 
         protected TextColor interpolateColor(TextColor startColor, TextColor endColor, float factor) {
@@ -103,13 +113,13 @@ public class GradientTag implements ColorChangingTag<GradientTag.GradientTagData
             final int startGreen = startColor.green();
             final int startBlue = startColor.blue();
 
-            final int endRed = endColor.red();
-            final int endGreen = endColor.green();
-            final int endBlue = endColor.blue();
+            final int diffRed = endColor.red() - startRed;
+            final int diffGreen = endColor.green() - startGreen;
+            final int diffBlue = endColor.blue() - startBlue;
 
-            final int interpolatedRed = (int) (startRed + (endRed - startRed) * factor);
-            final int interpolatedGreen = (int) (startGreen + (endGreen - startGreen) * factor);
-            final int interpolatedBlue = (int) (startBlue + (endBlue - startBlue) * factor);
+            final int interpolatedRed = startRed + (int) ((diffRed * factor) + 0.5f);
+            final int interpolatedGreen = startGreen + (int) ((diffGreen * factor) + 0.5f);
+            final int interpolatedBlue = startBlue + (int) ((diffBlue * factor) + 0.5f);
 
             return TextColor.color(interpolatedRed, interpolatedGreen, interpolatedBlue);
         }
