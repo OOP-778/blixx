@@ -1,5 +1,6 @@
 package dev.oop778.blixx.util;
 
+import lombok.SneakyThrows;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -10,6 +11,9 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Constructor;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
@@ -25,6 +29,20 @@ public class StyleBuilder implements Style.Builder {
     private @Nullable HoverEvent<?> hoverEvent;
     private @Nullable String insertion;
     private static final Map<TextDecoration, TextDecoration.State> EMPTY_DECORATIONS = Collections.emptyMap();
+
+    private static final MethodHandle CREATE_STYLE_HANDLE;
+
+    static {
+        try {
+            final Class<?> styleClazz = Class.forName("net.kyori.adventure.text.format.StyleImpl");
+            final Constructor<?> declaredConstructor = styleClazz.getDeclaredConstructors()[0];
+            declaredConstructor.setAccessible(true);
+
+            CREATE_STYLE_HANDLE = MethodHandles.publicLookup().unreflectConstructor(declaredConstructor);
+        } catch (Throwable throwable) {
+            throw new RuntimeException(throwable);
+        }
+    }
 
     public StyleBuilder() {
         this.decorations = EMPTY_DECORATIONS;
@@ -169,12 +187,14 @@ public class StyleBuilder implements Style.Builder {
     }
 
     @Override
+    @SneakyThrows
     public @NotNull Style build() {
         if (this.isEmpty()) {
             return Style.empty();
         }
 
-        return Style.style(builder -> builder.clickEvent(this.clickEvent).hoverEvent(this.hoverEvent).font(this.font).color(this.color).decorations(this.decorations).insertion(this.insertion).build());
+
+        return (Style) CREATE_STYLE_HANDLE.invoke(this.font, this.color, this.decorations, this.clickEvent, this.hoverEvent, this.insertion);
     }
 
     private boolean isEmpty() {
