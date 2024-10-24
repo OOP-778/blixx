@@ -92,8 +92,7 @@ public class GradientTag implements ColorChangingTag<GradientTag.GradientTagData
                 final int endColorIndex = Math.min(startColorIndex + 1, maxColorIndex);
 
                 final float interpolation = adjustedPosition - startColorIndex;
-                final TextColor interpolatedColor = this.interpolateColor(
-                        colors[startColorIndex], colors[endColorIndex], interpolation);
+                final TextColor interpolatedColor = this.interpolateColor(colors[startColorIndex], colors[endColorIndex], interpolation);
 
                 if (interpolatedColor.equals(lastInterpolatedColor)) {
                     builder.append(net.kyori.adventure.text.Component.text(currentChar, lastStyle));
