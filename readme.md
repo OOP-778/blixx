@@ -6,6 +6,11 @@
 ## Note
 Currently Blixx is still in development...
 
+TODO
+- Implement Decoration replacement
+- Implement Placeholder caching
+- Implement Replacer interfaces
+
 ## Why Blixx?
 
 Adventure's MiniMessage has its limitations and flaws. **Blixx** is built to be a blazing-fast, more feature-packed alternative that solves these issues.
