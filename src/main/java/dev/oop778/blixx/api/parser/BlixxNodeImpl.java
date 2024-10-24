@@ -14,6 +14,7 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -146,58 +147,53 @@ public class BlixxNodeImpl {
         return this.spec.hasPlaceholders(this);
     }
 
-    public void replace(List<BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
-        final Iterator<BlixxNodeImpl> iterator = this.iterator(true);
-        final Map<String, List<BlixxNodeImpl>> placeholderToNode = new HashMap<>();
+    private static void handleObjectReplacement(BlixxNodeImpl node, String placeholder, Object value) {
+        if (value instanceof BlixxComponentImpl) {
+            node.splitReplace(placeholder, ((BlixxComponentImpl) value).getNode());
+        } else {
+            node.setContent(node.getContent().replace(placeholder, String.valueOf(value)));
+        }
+    }
 
-        while (iterator.hasNext()) {
-            final BlixxNodeImpl node = iterator.next();
-            final List<String> nodePlaceholders = node.getPlaceholders();
-            if (nodePlaceholders == null) {
-                continue;
-            }
+    private static void handleLiteralReplacement(String fullStringPlaceholder, List<BlixxNodeImpl> nodes, BlixxPlaceholder.Literal<?> placeholder, PlaceholderContext context) {
+        final Collection<String> keys = placeholder.keys();
+        if (!keys.contains(fullStringPlaceholder)) {
+            return;
+        }
 
-            for (final String nodePlaceholder : nodePlaceholders) {
-                placeholderToNode.computeIfAbsent(nodePlaceholder, ($) -> new ArrayList<>()).add(node);
+        final Object value = placeholder.get(context);
+        for (final BlixxNodeImpl node : nodes) {
+            handleObjectReplacement(node, fullStringPlaceholder, value);
+        }
+    }
+
+    private static void handlePatternReplacement(String fullStringPlaceholder, List<BlixxNodeImpl> nodes, BlixxPlaceholder.Pattern<?> placeholder, PlaceholderContext context) {
+        final Pattern pattern = placeholder.pattern();
+        final Matcher matcher = pattern.matcher(fullStringPlaceholder.substring(1, fullStringPlaceholder.length() - 1));
+
+        final PlaceholderContext compose = PlaceholderContext.compose(PlaceholderContext.create(matcher), context);
+        while (matcher.find()) {
+            final Object value = placeholder.get(compose);
+            for (final BlixxNodeImpl node : nodes) {
+                handleObjectReplacement(node, fullStringPlaceholder, value);
             }
         }
+    }
+
+    public void replace(List<BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
+        final Map<String, List<BlixxNodeImpl>> placeholderToNode = this.collectPlaceholders();
 
         for (final Map.Entry<String, List<BlixxNodeImpl>> entry : placeholderToNode.entrySet()) {
             final String fullPlaceholder = entry.getKey();
-            final String placeholder = fullPlaceholder.substring(1, fullPlaceholder.length() - 1);
 
             for (final BlixxPlaceholder<?> blixxPlaceholder : placeholders) {
                 if (blixxPlaceholder instanceof BlixxPlaceholder.Literal<?>) {
-                    final Collection<String> keys = ((BlixxPlaceholder.Literal<?>) blixxPlaceholder).keys();
-                    if (!keys.contains(placeholder)) {
-                        continue;
-                    }
-
-                    final Object value = blixxPlaceholder.get(context);
-                    for (final BlixxNodeImpl node : entry.getValue()) {
-                        if (value instanceof BlixxComponentImpl) {
-                            node.splitReplace(fullPlaceholder, ((BlixxComponentImpl) value).getNode());
-                        } else {
-                            node.setContent(node.getContent().replace(fullPlaceholder, String.valueOf(value)));
-                        }
-                    }
+                    handleLiteralReplacement(fullPlaceholder, entry.getValue(), (BlixxPlaceholder.Literal<?>) blixxPlaceholder, context);
+                    continue;
                 }
 
                 if (blixxPlaceholder instanceof BlixxPlaceholder.Pattern<?>) {
-                    final Pattern pattern = ((BlixxPlaceholder.Pattern<?>) blixxPlaceholder).pattern();
-                    final Matcher matcher = pattern.matcher(placeholder);
-
-                    final PlaceholderContext compose = PlaceholderContext.compose(PlaceholderContext.create(matcher), context);
-                    while (matcher.find()) {
-                        final Object value = blixxPlaceholder.get(compose);
-                        for (final BlixxNodeImpl node : entry.getValue()) {
-                            if (value instanceof BlixxComponentImpl) {
-                                node.splitReplace(matcher.group(), ((BlixxComponentImpl) value).getNode());
-                            } else {
-                                node.setContent(node.getContent().replace(matcher.group(), String.valueOf(value)));
-                            }
-                        }
-                    }
+                    handlePatternReplacement(fullPlaceholder, entry.getValue(), (BlixxPlaceholder.Pattern<?>) blixxPlaceholder, context);
                 }
             }
         }
@@ -274,6 +270,25 @@ public class BlixxNodeImpl {
         componentBuilder.setStyle(build);
 
         return componentBuilder.build();
+    }
+
+    private Map<String, List<BlixxNodeImpl>> collectPlaceholders() {
+        final Iterator<BlixxNodeImpl> iterator = this.iterator(true);
+        final Map<String, List<BlixxNodeImpl>> placeholderToNode = new HashMap<>();
+
+        while (iterator.hasNext()) {
+            final BlixxNodeImpl node = iterator.next();
+            final List<String> nodePlaceholders = node.getPlaceholders();
+            if (nodePlaceholders == null) {
+                continue;
+            }
+
+            for (final String nodePlaceholder : nodePlaceholders) {
+                placeholderToNode.computeIfAbsent(nodePlaceholder, ($) -> new ArrayList<>()).add(node);
+            }
+        }
+
+        return placeholderToNode;
     }
 
     private List<String> getPlaceholders() {
