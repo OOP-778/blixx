@@ -157,7 +157,7 @@ public class BlixxNodeImpl {
 
     private static void handleLiteralReplacement(String fullStringPlaceholder, List<BlixxNodeImpl> nodes, BlixxPlaceholder.Literal<?> placeholder, PlaceholderContext context) {
         final Collection<String> keys = placeholder.keys();
-        if (!keys.contains(fullStringPlaceholder)) {
+        if (!keys.contains(fullStringPlaceholder.substring(1, fullStringPlaceholder.length() - 1))) {
             return;
         }
 
