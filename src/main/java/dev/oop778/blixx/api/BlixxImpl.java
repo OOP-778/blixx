@@ -2,7 +2,7 @@ package dev.oop778.blixx.api;
 
 import dev.oop778.blixx.api.component.BlixxComponent;
 import dev.oop778.blixx.api.component.BlixxComponentImpl;
-import dev.oop778.blixx.api.parser.BlixxRootNodeImpl;
+import dev.oop778.blixx.api.parser.BlixxNodeImpl;
 import dev.oop778.blixx.api.parser.ParserImpl;
 import dev.oop778.blixx.api.parser.config.ParserConfigImpl;
 import dev.oop778.blixx.api.placeholder.PlaceholderConfigImpl;
@@ -28,7 +28,7 @@ public class BlixxImpl implements Blixx {
 
     @Override
     public BlixxComponent parse(@NonNull String input, PlaceholderContext context) {
-        final BlixxRootNodeImpl parse = this.parser.parse(input, context);
+        final BlixxNodeImpl parse = this.parser.parse(input, context);
         return new BlixxComponentImpl(parse);
     }
 }

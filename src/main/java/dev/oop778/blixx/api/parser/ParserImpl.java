@@ -27,7 +27,7 @@ public class ParserImpl {
         this.context = blixx.placeholderConfig().defaultContext().context();
     }
 
-    public BlixxRootNodeImpl parse(String text, PlaceholderContext context) {
+    public BlixxNodeImpl parse(String text, PlaceholderContext context) {
         final String preprocessInput = this.preprocessInput(text, PlaceholderContext.compose(this.context, context));
         final ParsingContext parsingContext = new ParsingContext(preprocessInput, text);
         parsingContext.parse();
@@ -39,15 +39,13 @@ public class ParserImpl {
 
     private String preprocessInput(String input, PlaceholderContext context) {
         for (final BlixxPlaceholder<String> parsePlaceholder : ParserImpl.this.parserConfig.parsePlaceholders()) {
-            if (parsePlaceholder instanceof BlixxPlaceholder.Literal) {
-                final BlixxPlaceholder.Literal<String> literalPlaceholder = (BlixxPlaceholder.Literal<String>) parsePlaceholder;
+            if (parsePlaceholder instanceof BlixxPlaceholder.Literal<String> literalPlaceholder) {
                 for (final String key : literalPlaceholder.keys()) {
                     input = !input.contains(key) ? key : input.replace(key, literalPlaceholder.get(context));
                 }
             }
 
-            if (parsePlaceholder instanceof BlixxPlaceholder.Pattern) {
-                final BlixxPlaceholder.Pattern<String> patternPlaceholder = (BlixxPlaceholder.Pattern<String>) parsePlaceholder;
+            if (parsePlaceholder instanceof BlixxPlaceholder.Pattern<String> patternPlaceholder) {
                 final Pattern pattern = patternPlaceholder.pattern();
                 final Matcher matcher = pattern.matcher(input);
                 while (matcher.find()) {
@@ -60,28 +58,31 @@ public class ParserImpl {
         return input;
     }
 
-    private void postParse(BlixxRootNodeImpl rootNode) {
-        final Iterator<BlixxNodeImpl> iterator = rootNode.iterator(true);
+    private void postParse(BlixxNodeImpl node) {
+        final Iterator<BlixxNodeImpl> iterator = node.iterator(true);
         while (iterator.hasNext()) {
             final BlixxNodeImpl next = iterator.next();
-            if (!rootNode.hasPlaceholders(next)) {
+            if (!next.hasPlaceholders()) {
                 next.parseIntoAdventure(this.blixx);
             }
         }
     }
 
     private class ParsingContext {
-        private final BlixxRootNodeImpl rootNode;
-        private final String input;
+        private final BlixxNodeImpl rootNode;
         private final ArrayCharacterQueue charQueue;
         private final StringBuilder builder = new StringBuilder();
+        private final Object parserKey;
         private BlixxNodeImpl currentNode;
         private BlixxTag.WithDefinedData<?> lastParsedTag;
+        private int nodeIndex;
+        private final BlixxNodeSpec spec;
 
         public ParsingContext(String input, String originalInput) {
-            this.input = input;
             this.charQueue = new ArrayCharacterQueue(input);
-            this.rootNode = new BlixxRootNodeImpl(originalInput);
+            this.spec = new BlixxNodeSpec(originalInput);
+            this.parserKey = new Object();
+            this.rootNode = new BlixxNodeImpl(new NodeKey(this.nodeIndex++, this.parserKey), this.spec);
             this.currentNode = this.rootNode;
         }
 
@@ -185,7 +186,7 @@ public class ParserImpl {
 
         private void moveOntoNewNode(@Nullable Predicate<BlixxTag<?>> tagFilterer) {
             this.finishNode();
-            this.currentNode = this.currentNode.createNextNode(tagFilterer);
+            this.currentNode = this.currentNode.createNextNode(new NodeKey(this.nodeIndex++, this.parserKey), tagFilterer);
         }
 
         private boolean isTagAlreadyUsed(BlixxTag.WithDefinedData<?> parsedTag) {
@@ -244,7 +245,7 @@ public class ParserImpl {
             this.builder.setLength(0);
 
             this.currentNode.setContent(content);
-            this.rootNode.indexPlaceholdersOf(this.currentNode, ParserImpl.this.blixx);
+            this.spec.indexPlaceholdersOf(this.currentNode, ParserImpl.this.blixx);
         }
     }
 

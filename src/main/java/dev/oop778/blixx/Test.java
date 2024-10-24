@@ -3,10 +3,12 @@ package dev.oop778.blixx;
 import dev.oop778.blixx.api.Blixx;
 import dev.oop778.blixx.api.component.BlixxComponent;
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
+import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 import dev.oop778.blixx.api.tag.BlixxTags;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -42,8 +44,13 @@ public class Test {
         - build style using Decorators
         - build component builder using Component Visitor
         */
-        final BlixxComponent parse = build.parse("<bold><gradient:red:green>Hello world");
-        System.out.println(LegacyComponentSerializer.legacyAmpersand().serialize(parse.asComponent()));
+        final BlixxComponent toReplace = build.parse("<bold><red>Replaced");
+        final BlixxPlaceholder<?> toReplacePlaceholder = BlixxPlaceholder.literal("replaced", toReplace);
+
+        final BlixxComponent text = build.parse("<gradient:red:blue>Hello World %replaced% <red>GG %replaced%");
+        text.replace(List.of(toReplacePlaceholder), PlaceholderContext.create());
+
+        System.out.println(LegacyComponentSerializer.legacySection().serialize(text.asComponent()));
     }
 
     interface ColorScheme {
