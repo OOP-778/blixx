@@ -204,56 +204,48 @@ public class BlixxNodeImpl {
     }
 
     public void splitReplace(String what, BlixxNodeImpl with) {
+        BlixxNodeImpl currentNode = this;
 
-        final Queue<BlixxNodeImpl> toVisit = new LinkedList<>();
-        toVisit.add(this);
-
-        while (!toVisit.isEmpty()) {
-            final BlixxNodeImpl currentNode = toVisit.poll();
+        while (currentNode != null) {
             final String input = currentNode.content;
-            final int startIndex;
+            final int startIndex = input.indexOf(what);
 
-            // Process the current node's content
-            while ((startIndex = input.indexOf(what)) != -1) {
-                // Split the input before and after the found placeholder
-                final String before = input.substring(0, startIndex); // text before the placeholder
-                final String after = input.substring(startIndex + what.length()); // text after the placeholder
+            if (startIndex == -1) {
+                currentNode = currentNode.next;
+                continue;
+            }
 
-                // Set the content of the current node to 'before'
-                currentNode.content = before;
+            // Split the input before and after the found placeholder
+            final String before = input.substring(0, startIndex); // text before the placeholder
+            final String after = input.substring(startIndex + what.length()); // text after the placeholder
 
-                // Preserve the original next node (if it exists)
-                final BlixxNodeImpl originalNext = currentNode.next;
+            // Set the content of the current node to 'before'
+            currentNode.content = before;
 
-                // Link the replacement node chain to the current node
-                currentNode.next = with.copy();
+            // Preserve the original next node (if it exists)
+            final BlixxNodeImpl originalNext = currentNode.next;
 
-                // Move to the end of the replacement chain
-                BlixxNodeImpl lastNode = currentNode;
-                while (lastNode.next != null) {
-                    lastNode = lastNode.next;
-                }
+            // Link the replacement node chain to the current node
+            currentNode.next = with.copy();
 
-                if (after.isEmpty()) {
-                    lastNode.next = originalNext;
-                    break;
-                }
+            // Move to the end of the replacement chain
+            BlixxNodeImpl lastNode = currentNode;
+            while (lastNode.next != null) {
+                lastNode = lastNode.next;
+            }
 
-                System.out.println(after);
-
-                // Create a node for the remaining part of the string and link it
-                final BlixxNodeImpl afterNode = this.copy(); // Link to the preserved original next node
-                afterNode.content = after;
-                afterNode.next = originalNext;
-                lastNode.next = afterNode;
-
-                if (currentNode.next != null) {
-                    toVisit.add(afterNode);
-                }
-
-                // Break out of the inner loop after the replacement is done to avoid reprocessing the same string
+            if (after.isEmpty()) {
+                lastNode.next = originalNext;
                 break;
             }
+
+            // Create a node for the remaining part of the string and link it
+            final BlixxNodeImpl afterNode = this.copy(); // Link to the preserved original next node
+            afterNode.content = after;
+            afterNode.next = originalNext;
+            lastNode.next = afterNode;
+
+            currentNode = currentNode.next;
         }
     }
 
