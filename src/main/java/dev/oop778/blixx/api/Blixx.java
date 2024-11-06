@@ -2,9 +2,10 @@ package dev.oop778.blixx.api;
 
 import dev.oop778.blixx.api.component.BlixxComponent;
 import dev.oop778.blixx.api.parser.config.ParserConfig;
+import dev.oop778.blixx.api.parser.node.BlixxNode;
 import dev.oop778.blixx.api.placeholder.PlaceholderConfig;
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
-import dev.oop778.blixx.api.util.UnsafeCast;
+import dev.oop778.blixx.util.UnsafeCast;
 import lombok.NonNull;
 
 public interface Blixx {
@@ -20,4 +21,5 @@ public interface Blixx {
     }
 
     BlixxComponent parse(@NonNull String input, PlaceholderContext context);
+    BlixxNode parseIntoNode(@NonNull String input, PlaceholderContext context);
 }

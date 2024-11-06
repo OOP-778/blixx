@@ -2,11 +2,10 @@ package dev.oop778.blixx.tag.decoration;
 
 import dev.oop778.blixx.api.tag.BlixxProcessor;
 import dev.oop778.blixx.api.tag.BlixxTag;
-import dev.oop778.blixx.api.util.FastComponentBuilder;
+import dev.oop778.blixx.util.FastComponentBuilder;
 import dev.oop778.blixx.text.argument.BaseArgumentQueue;
 import lombok.Data;
 import lombok.NonNull;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +23,7 @@ public class GradientTag implements ColorChangingTag<GradientTag.GradientTagData
     }
 
     @Override
-    public GradientTagData createData(BlixxProcessor.@NonNull Context context, @NotNull BaseArgumentQueue args) {
+    public GradientTagData createData(@NonNull BlixxProcessor.@NonNull ParserContext context, @NotNull BaseArgumentQueue args) {
         final List<TextColor> colors = new ArrayList<>(args.size());
         float phase = 0;
 

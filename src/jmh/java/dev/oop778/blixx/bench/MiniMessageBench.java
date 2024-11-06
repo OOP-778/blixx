@@ -30,8 +30,7 @@ public class MiniMessageBench {
         this.blixxParser = Blixx.builder()
                 .withStandardParserConfig((configurator) -> configurator
                         .withTags(BlixxTags.DEFAULT_TAGS)
-                        //.withPlaceholderFormat('%', '%')
-                        .withPlaceholderFormat('{', '}')
+                        .withPlaceholderFormat('<', '>')
                 )
                 .withStandardPlaceholderConfig()
                 .build();
@@ -47,11 +46,11 @@ public class MiniMessageBench {
                 We also have multiple <bold>types</bold> of <strikethrough>text decorations</strikethrough> and
                 <obfuscated>obfuscated</obfuscated> text for testing purposes.
                 <gradient:#ff5555:#5555ff>Another gradient</gradient> with <italic><bold>placeholders</bold>:</italic>
-                <gradient:#00ff00:#0000ff>{placeholder_1} Placeholder</gradient>, and more.
+                <gradient:#00ff00:#0000ff><placeholder_1> Placeholder</gradient>, and more.
                 <hover:show_text:"Tooltip!"><click:open_url:"https://example.com">Visit website</click></hover>.
                 Even more <gradient:#ff0000:#00ff00>complex</gradient> nodes with <gradient:#00ffff:#ff00ff>crazy gradients</gradient> 
                 and <hover:show_text:"Hover info"><click:suggest_command:"/help">suggested commands</click></hover>.
-                {placeholder_2}
+                <placeholder_2>
                 """;
 
         this.preparsedBlixx = this.blixxParser.parse(this.complexInput, PlaceholderContext.create());
@@ -74,18 +73,15 @@ public class MiniMessageBench {
         final BlixxPlaceholder<String> placeholder = BlixxPlaceholder.literal("placeholder_1", "1st placeholder");
         final BlixxPlaceholder<String> placeholder2 = BlixxPlaceholder.literal("placeholder_2", "2st placeholder");
 
-        parse.replace(List.of(placeholder, placeholder2), PlaceholderContext.create());
-        parse.asComponent();
+        parse.replace(List.of(placeholder, placeholder2), PlaceholderContext.create()).asComponent();
     }
 
     @Benchmark
     public void blixxPreparsedWithPlaceholders() {
-        final BlixxComponent copy = this.preparsedBlixx.copy();
         final BlixxPlaceholder<String> placeholder = BlixxPlaceholder.literal("placeholder_1", "1st placeholder");
         final BlixxPlaceholder<String> placeholder2 = BlixxPlaceholder.literal("placeholder_2", "2st placeholder");
 
-        copy.replace(List.of(placeholder, placeholder2), PlaceholderContext.create());
-        copy.asComponent();
+        this.preparsedBlixx.replace(List.of(placeholder, placeholder2), PlaceholderContext.create()).asComponent();
     }
 
     @Benchmark

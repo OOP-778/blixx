@@ -1,12 +1,15 @@
-package dev.oop778.blixx.api.parser;
+package dev.oop778.blixx.api.parser.node;
 
 import dev.oop778.blixx.api.Blixx;
-import dev.oop778.blixx.api.component.BlixxComponentImpl;
+import dev.oop778.blixx.api.parser.TagWithDefinedDataImpl;
+import dev.oop778.blixx.api.parser.indexable.Indexable;
+import dev.oop778.blixx.api.parser.indexable.IndexableKey;
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 import dev.oop778.blixx.api.tag.BlixxProcessor;
 import dev.oop778.blixx.api.tag.BlixxTag;
-import dev.oop778.blixx.api.util.FastComponentBuilder;
+import dev.oop778.blixx.util.FastComponentBuilder;
+import dev.oop778.blixx.util.ObjectArray;
 import dev.oop778.blixx.util.StyleBuilder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -14,47 +17,119 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.Style;
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Getter
 @RequiredArgsConstructor
-public class BlixxNodeImpl {
-    private final NodeKey key;
+public class BlixxNodeImpl implements BlixxNode {
+    private final IndexableKey key;
     private final BlixxNodeSpec spec;
-    protected List<BlixxTag.WithDefinedData<?>> tags;
+    @Setter
+    protected ObjectArray<BlixxTag.WithDefinedData<?>> tags;
     @Setter
     protected BlixxNodeImpl next;
     @Setter
     protected String content = "";
     @Nullable
     protected Component adventureComponent;
+    private boolean hasIndexableTagData = false;
 
     public BlixxNodeImpl clone() {
         final BlixxNodeImpl copy = new BlixxNodeImpl(this.key, this.spec);
         copy.content = this.content;
-        copy.tags = this.tags != null ? new ArrayList<>(this.tags) : null;
+        copy.tags = this.copyTags();
         copy.adventureComponent = this.adventureComponent;
 
         return copy;
     }
 
+    @Override
+    public ObjectArray<BlixxTag.WithDefinedData<?>> getTags() {
+        return this.tags != null ? this.tags : (ObjectArray<BlixxTag.WithDefinedData<?>>) ObjectArray.EMPTY;
+    }
+
+    @Override
+    public BlixxNodeImpl copy() {
+        BlixxNodeImpl top = null;
+        BlixxNodeImpl current = this;
+        BlixxNodeImpl last = null;
+
+        while (current != null) {
+            final BlixxNodeImpl copy = current.clone();
+
+            if (top == null) {
+                top = copy;
+            }
+
+            if (last != null) {
+                last.next = copy;
+            }
+
+            current = current.getNext();
+            last = copy;
+        }
+
+        return top;
+    }
+
+    @Override
+    public TextComponent build() {
+        Component current = null;
+        final BlixxProcessor.Component.ComponentContext context = BlixxProcessor.Component.ComponentContext.builder().build();
+
+        final Iterator<BlixxNodeImpl> iterator = this.iterator(true);
+        while (iterator.hasNext()) {
+            final BlixxNodeImpl node = iterator.next();
+            if (node.adventureComponent != null) {
+                current = current == null ? node.adventureComponent : current.append(node.adventureComponent);
+                continue;
+            }
+
+            final FastComponentBuilder componentBuilder = new FastComponentBuilder();
+            componentBuilder.setContent(node.getContent());
+
+            context.setStyleBuilder(new StyleBuilder());
+            context.setComponentBuilder(componentBuilder);
+
+            for (final BlixxTag.WithDefinedData<?> tag : node.getTags()) {
+                context.setData(tag.getDefinedData());
+
+                final BlixxProcessor processor = tag.getProcessor();
+                if (processor instanceof BlixxProcessor.Component.Decorator) {
+                    ((BlixxProcessor.Component.Decorator) processor).decorate(context);
+                }
+
+                if (processor instanceof BlixxProcessor.Component.Visitor<?>) {
+                    ((BlixxProcessor.Component.Visitor) processor).visit(context);
+                }
+            }
+
+            componentBuilder.setStyle(context.getStyleBuilder().build());
+            current = current == null ? componentBuilder.build() : current.append(componentBuilder.build());
+        }
+
+        return (TextComponent) current;
+    }
+
+    @Override
+    public boolean hasPlaceholders() {
+        return this.spec.hasPlaceholders(this);
+    }
+
     public void addTag(BlixxTag.WithDefinedData<?> tag) {
         if (this.tags == null) {
-            this.tags = new ArrayList<>();
+            this.tags = new ObjectArray<>(2);
+        }
+
+        if (tag.getDefinedData() instanceof Indexable) {
+            this.hasIndexableTagData = true;
         }
 
         this.tags.add(tag);
-    }
-
-    public List<BlixxTag.WithDefinedData<?>> getTags() {
-        return this.tags != null ? this.tags : Collections.emptyList();
     }
 
     public Iterator<BlixxNodeImpl> iterator(boolean withItself) {
@@ -79,52 +154,10 @@ public class BlixxNodeImpl {
         };
     }
 
-    public BlixxNodeImpl copy() {
-        return this.clone();
-    }
-
-    public TextComponent build() {
-        final TextComponent.Builder rootBuilder = Component.text();
-        final BlixxProcessor.Component.ComponentContext context = BlixxProcessor.Component.ComponentContext.builder().build();
-
-        final Iterator<BlixxNodeImpl> iterator = this.iterator(true);
-        while (iterator.hasNext()) {
-            final BlixxNodeImpl node = iterator.next();
-            if (node.adventureComponent != null) {
-                rootBuilder.append(node.adventureComponent);
-                continue;
-            }
-
-            final FastComponentBuilder componentBuilder = new FastComponentBuilder();
-            componentBuilder.setContent(node.getContent());
-
-            context.setStyleBuilder(new StyleBuilder());
-            context.setComponentBuilder(componentBuilder);
-
-            for (final BlixxTag.WithDefinedData<?> tag : node.getTags()) {
-                context.setData(tag.getDefinedData());
-
-                final BlixxProcessor processor = tag.getProcessor();
-                if (processor instanceof BlixxProcessor.Component.Decorator) {
-                    ((BlixxProcessor.Component.Decorator) processor).decorate(context);
-                }
-
-                if (processor instanceof BlixxProcessor.Component.Visitor<?>) {
-                    ((BlixxProcessor.Component.Visitor) processor).visit(context);
-                }
-            }
-
-            componentBuilder.setStyle(context.getStyleBuilder().build());
-            rootBuilder.append(componentBuilder.build());
-        }
-
-        return rootBuilder.build();
-    }
-
-    public BlixxNodeImpl createNextNode(NodeKey key, @Nullable Predicate<BlixxTag<?>> tagFilterer) {
+    public BlixxNodeImpl createNextNode(IndexableKey key, @Nullable Predicate<BlixxTag.WithDefinedData<?>> tagFilterer) {
         final BlixxNodeImpl next = new BlixxNodeImpl(key, this.spec);
         if (this.tags != null) {
-            next.tags = tagFilterer == null ? new ArrayList<>(this.tags) : this.tags.stream().filter(tagFilterer).collect(Collectors.toList());
+            next.tags = tagFilterer == null ? new ObjectArray<>(this.tags) : this.tags.filter(tagFilterer);
         }
 
         this.next = next;
@@ -143,64 +176,14 @@ public class BlixxNodeImpl {
         this.adventureComponent = this.buildAdventure(blixx);
     }
 
-    public boolean hasPlaceholders() {
-        return this.spec.hasPlaceholders(this);
+    public void replace(List<? extends BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
+        final NodeReplacementWorkV2 nodeReplacement = new NodeReplacementWorkV2(this, placeholders, context);
+        nodeReplacement.work();
     }
 
-    private static void handleObjectReplacement(BlixxNodeImpl node, String placeholder, Object value) {
-        if (value instanceof BlixxComponentImpl) {
-            node.splitReplace(placeholder, ((BlixxComponentImpl) value).getNode());
-        } else {
-            node.setContent(node.getContent().replace(placeholder, String.valueOf(value)));
-        }
-    }
-
-    private static void handleLiteralReplacement(String fullStringPlaceholder, List<BlixxNodeImpl> nodes, BlixxPlaceholder.Literal<?> placeholder, PlaceholderContext context) {
-        final Collection<String> keys = placeholder.keys();
-        if (!keys.contains(fullStringPlaceholder.substring(1, fullStringPlaceholder.length() - 1))) {
-            return;
-        }
-
-        final Object value = placeholder.get(context);
-        for (final BlixxNodeImpl node : nodes) {
-            handleObjectReplacement(node, fullStringPlaceholder, value);
-        }
-    }
-
-    private static void handlePatternReplacement(String fullStringPlaceholder, List<BlixxNodeImpl> nodes, BlixxPlaceholder.Pattern<?> placeholder, PlaceholderContext context) {
-        final Pattern pattern = placeholder.pattern();
-        final Matcher matcher = pattern.matcher(fullStringPlaceholder.substring(1, fullStringPlaceholder.length() - 1));
-
-        final PlaceholderContext compose = PlaceholderContext.compose(PlaceholderContext.create(matcher), context);
-        while (matcher.find()) {
-            final Object value = placeholder.get(compose);
-            for (final BlixxNodeImpl node : nodes) {
-                handleObjectReplacement(node, fullStringPlaceholder, value);
-            }
-        }
-    }
-
-    public void replace(List<BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
-        final Map<String, List<BlixxNodeImpl>> placeholderToNode = this.collectPlaceholders();
-
-        for (final Map.Entry<String, List<BlixxNodeImpl>> entry : placeholderToNode.entrySet()) {
-            final String fullPlaceholder = entry.getKey();
-
-            for (final BlixxPlaceholder<?> blixxPlaceholder : placeholders) {
-                if (blixxPlaceholder instanceof BlixxPlaceholder.Literal<?>) {
-                    handleLiteralReplacement(fullPlaceholder, entry.getValue(), (BlixxPlaceholder.Literal<?>) blixxPlaceholder, context);
-                    continue;
-                }
-
-                if (blixxPlaceholder instanceof BlixxPlaceholder.Pattern<?>) {
-                    handlePatternReplacement(fullPlaceholder, entry.getValue(), (BlixxPlaceholder.Pattern<?>) blixxPlaceholder, context);
-                }
-            }
-        }
-    }
-
-    public void splitReplace(String what, BlixxNodeImpl with) {
+    public boolean splitReplace(String what, BlixxNodeImpl with) {
         BlixxNodeImpl currentNode = this;
+        boolean replaced = false;
 
         while (currentNode != null) {
             final String input = currentNode.content;
@@ -210,6 +193,8 @@ public class BlixxNodeImpl {
                 currentNode = currentNode.next;
                 continue;
             }
+
+            replaced = true;
 
             // Split the input before and after the found placeholder
             final String before = input.substring(0, startIndex); // text before the placeholder
@@ -243,6 +228,20 @@ public class BlixxNodeImpl {
 
             currentNode = currentNode.next;
         }
+
+        return replaced;
+    }
+
+    public Map<String, List<Indexable>> collectPlaceholders() {
+        final Iterator<BlixxNodeImpl> iterator = this.iterator(true);
+        final Map<String, List<Indexable>> placeholderToNode = new HashMap<>();
+
+        while (iterator.hasNext()) {
+            final BlixxNodeImpl node = iterator.next();
+            node.getSpec().collectPlaceholders(node, placeholderToNode);
+        }
+
+        return placeholderToNode;
     }
 
     protected Component buildAdventure(Blixx blixx) {
@@ -272,26 +271,20 @@ public class BlixxNodeImpl {
         return componentBuilder.build();
     }
 
-    private Map<String, List<BlixxNodeImpl>> collectPlaceholders() {
-        final Iterator<BlixxNodeImpl> iterator = this.iterator(true);
-        final Map<String, List<BlixxNodeImpl>> placeholderToNode = new HashMap<>();
-
-        while (iterator.hasNext()) {
-            final BlixxNodeImpl node = iterator.next();
-            final List<String> nodePlaceholders = node.getPlaceholders();
-            if (nodePlaceholders == null) {
-                continue;
-            }
-
-            for (final String nodePlaceholder : nodePlaceholders) {
-                placeholderToNode.computeIfAbsent(nodePlaceholder, ($) -> new ArrayList<>()).add(node);
-            }
+    private ObjectArray<BlixxTag.WithDefinedData<?>> copyTags() {
+        if (!this.hasIndexableTagData) {
+            return this.tags == null ? null : new ObjectArray<>(this.tags);
         }
 
-        return placeholderToNode;
+        return this.tags.map(this::copyTag);
     }
 
-    private List<String> getPlaceholders() {
-        return this.spec.getPlaceholders(this);
+    @SuppressWarnings("unchecked")
+    private <T> BlixxTag.WithDefinedData<T> copyTag(BlixxTag.WithDefinedData<T> tag) {
+        if (!(tag.getDefinedData() instanceof Indexable)) {
+            return tag;
+        }
+
+        return new TagWithDefinedDataImpl<>(tag, (T) ((Indexable) tag.getDefinedData()).copy());
     }
 }

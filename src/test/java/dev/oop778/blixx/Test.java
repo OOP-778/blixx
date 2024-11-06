@@ -3,9 +3,8 @@ package dev.oop778.blixx;
 import dev.oop778.blixx.api.Blixx;
 import dev.oop778.blixx.api.component.BlixxComponent;
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
-import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 import dev.oop778.blixx.api.tag.BlixxTags;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.Component;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +18,7 @@ public class Test {
                         .withTags(BlixxTags.DEFAULT_TAGS)
                         .withPlaceholderFormat('%', '%')
                         .withPlaceholderFormat('{', '}')
+                        .withPlaceholderFormat('<', '>')
                         .withParsePlaceholder(BlixxPlaceholder.<String>builder()
                                 .contextual()
                                 .withExact(ColorScheme.class)
@@ -27,15 +27,17 @@ public class Test {
                                 .withContextAndMatcherSupplying((context, matcher) -> {
                                     // main color
                                     if (matcher.group(2) == null) {
-                                        return context.getHexColor(matcher.group(1), 0);
+                                        return "<" + context.getHexColor(matcher.group(1), 0) + ">";
                                     }
 
                                     // Shaded color
-                                    return context.getHexColor(matcher.group(1), Integer.parseInt(matcher.group(2)));
+                                    return "<" + context.getHexColor(matcher.group(1), Integer.parseInt(matcher.group(2))) + ">";
                                 })
                                 .build()))
                 .withStandardPlaceholderConfig()
                 .build();
+
+        final ColorSchemeImpl colorScheme = new ColorSchemeImpl();
 
         /*
         example:
@@ -44,13 +46,21 @@ public class Test {
         - build style using Decorators
         - build component builder using Component Visitor
         */
-        final BlixxComponent toReplace = build.parse("<bold><red>Replaced");
-        final BlixxPlaceholder<?> toReplacePlaceholder = BlixxPlaceholder.literal("replaced", toReplace);
+        //        final BlixxPlaceholder<?> secondPlayerName = BlixxPlaceholder.literal("player_2", build.parse("<red>Player 2", PlaceholderContext.create()));
+        //        final BlixxPlaceholder<?> toReplacePlaceholder = BlixxPlaceholder.literal("player", build.parse("<red><hover:show_text:Hello Mister <player_2>>Red Player Name", PlaceholderContext.create()));
+        //
+        //        final BlixxComponent text = build.parse("<blue>Hello <player>", PlaceholderContext.create(colorScheme));
+        //        text.replace(List.of(toReplacePlaceholder, secondPlayerName), PlaceholderContext.create());
 
-        final BlixxComponent text = build.parse("<gradient:red:blue>Hello World %replaced% <red>GG %replaced%");
-        text.replace(List.of(toReplacePlaceholder), PlaceholderContext.create());
+        ///final BlixxPlaceholder<String> placeholderOne =
+        final String input = "<gradient:red:blue><player><hover:show_text:Hello <player>> Welcome!";
 
-        System.out.println(LegacyComponentSerializer.legacySection().serialize(text.asComponent()));
+        BlixxComponent parse = build.parse(input);
+        parse = parse.replace(List.of(
+                BlixxPlaceholder.literal("player", build.parse("<player_2>")),
+                BlixxPlaceholder.literal("player_2", build.parse("<red>OOP_778"))
+        ), null);
+        final Component component = parse.asComponent();
     }
 
     interface ColorScheme {
@@ -106,5 +116,4 @@ public class Test {
             return String.format("#%02X%02X%02X", red, green, blue);
         }
     }
-
 }

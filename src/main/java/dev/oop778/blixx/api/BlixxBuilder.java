@@ -5,7 +5,7 @@ import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.placeholder.PlaceholderConfigImpl;
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContextImpl;
 import dev.oop778.blixx.api.tag.BlixxTag;
-import dev.oop778.blixx.api.util.Pair;
+import dev.oop778.blixx.util.Pair;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;

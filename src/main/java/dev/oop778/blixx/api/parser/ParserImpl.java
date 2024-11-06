@@ -2,13 +2,15 @@ package dev.oop778.blixx.api.parser;
 
 import dev.oop778.blixx.api.Blixx;
 import dev.oop778.blixx.api.parser.config.ParserConfig;
+import dev.oop778.blixx.api.parser.indexable.IndexableKey;
+import dev.oop778.blixx.api.parser.node.BlixxNodeImpl;
+import dev.oop778.blixx.api.parser.node.BlixxNodeSpec;
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 import dev.oop778.blixx.api.tag.BlixxProcessor;
 import dev.oop778.blixx.api.tag.BlixxTag;
 import dev.oop778.blixx.text.argument.BaseArgumentQueue;
 import dev.oop778.blixx.util.ArrayCharacterQueue;
-import lombok.Data;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
@@ -39,17 +41,17 @@ public class ParserImpl {
 
     private String preprocessInput(String input, PlaceholderContext context) {
         for (final BlixxPlaceholder<String> parsePlaceholder : ParserImpl.this.parserConfig.parsePlaceholders()) {
-            if (parsePlaceholder instanceof BlixxPlaceholder.Literal<String> literalPlaceholder) {
-                for (final String key : literalPlaceholder.keys()) {
-                    input = !input.contains(key) ? key : input.replace(key, literalPlaceholder.get(context));
+            if (parsePlaceholder instanceof BlixxPlaceholder.Literal) {
+                for (final String key : ((BlixxPlaceholder.Literal<?>) parsePlaceholder).keys()) {
+                    input = !input.contains(key) ? key : input.replace(key, parsePlaceholder.get(context));
                 }
             }
 
-            if (parsePlaceholder instanceof BlixxPlaceholder.Pattern<String> patternPlaceholder) {
-                final Pattern pattern = patternPlaceholder.pattern();
+            if (parsePlaceholder instanceof BlixxPlaceholder.Pattern) {
+                final Pattern pattern = ((BlixxPlaceholder.Pattern<?>) parsePlaceholder).pattern();
                 final Matcher matcher = pattern.matcher(input);
                 while (matcher.find()) {
-                    final String replacement = patternPlaceholder.get(PlaceholderContext.compose(PlaceholderContext.create(matcher), context));
+                    final String replacement = parsePlaceholder.get(PlaceholderContext.compose(PlaceholderContext.create(matcher), context));
                     input = input.replace(matcher.group(), replacement);
                 }
             }
@@ -68,22 +70,28 @@ public class ParserImpl {
         }
     }
 
-    private class ParsingContext {
+    private class ParsingContext implements dev.oop778.blixx.api.parser.ParsingContext {
         private final BlixxNodeImpl rootNode;
         private final ArrayCharacterQueue charQueue;
         private final StringBuilder builder = new StringBuilder();
         private final Object parserKey;
+        private final BlixxNodeSpec spec;
         private BlixxNodeImpl currentNode;
         private BlixxTag.WithDefinedData<?> lastParsedTag;
-        private int nodeIndex;
-        private final BlixxNodeSpec spec;
+        private final BlixxProcessor.ParserContext context;
 
         public ParsingContext(String input, String originalInput) {
             this.charQueue = new ArrayCharacterQueue(input);
-            this.spec = new BlixxNodeSpec(originalInput);
             this.parserKey = new Object();
-            this.rootNode = new BlixxNodeImpl(new NodeKey(this.nodeIndex++, this.parserKey), this.spec);
+            this.spec = new BlixxNodeSpec(ParserImpl.this.blixx, originalInput, this.parserKey);
+            this.rootNode = new BlixxNodeImpl(new IndexableKey(this.spec.getNextIndex(), this.parserKey), this.spec);
             this.currentNode = this.rootNode;
+            this.context = BlixxProcessor.ParserContext.builder().blixx(ParserImpl.this.blixx).parsingContext(this).build();
+        }
+
+        @Override
+        public IndexableKey createNewKey() {
+            return new IndexableKey(this.spec.getNextIndex(), this.parserKey);
         }
 
         public void parse() {
@@ -128,7 +136,12 @@ public class ParserImpl {
             }
 
             final BlixxTag.WithDefinedData<?> parsedTag = this.tryParseTag(tagContent);
-            if (parsedTag == null || this.isTagAlreadyUsed(parsedTag)) {
+            if (parsedTag == null) {
+                this.charQueue.jump(parsingStart);
+                return false;
+            }
+
+            if (this.isTagAlreadyUsed(parsedTag)) {
                 return true;
             }
 
@@ -163,7 +176,7 @@ public class ParserImpl {
         }
 
         private boolean processNewTag(BlixxTag.WithDefinedData<?> parsedTag) {
-            if (!this.builder.isEmpty()) {
+            if (this.builder.length() != 0) {
                 final BlixxProcessor.Context tagContext = BlixxProcessor.Context.builder().blixx(ParserImpl.this.blixx).build();
                 this.moveOntoNewNode(tag -> parsedTag.canCoexist(tagContext, tag));
             }
@@ -174,7 +187,7 @@ public class ParserImpl {
 
             final BlixxProcessor processor = parsedTag.getProcessor();
             if (processor instanceof BlixxProcessor.Tree.Filterer) {
-                ((BlixxProcessor.Tree.Filterer) processor).filter(build, this.currentNode.getTags());
+                this.currentNode.setTags(((BlixxProcessor.Tree.Filterer) processor).filter(build, this.currentNode.getTags()));
                 return true;
             }
 
@@ -184,9 +197,9 @@ public class ParserImpl {
             return true;
         }
 
-        private void moveOntoNewNode(@Nullable Predicate<BlixxTag<?>> tagFilterer) {
+        private void moveOntoNewNode(@Nullable Predicate<BlixxTag.WithDefinedData<?>> tagFilterer) {
             this.finishNode();
-            this.currentNode = this.currentNode.createNextNode(new NodeKey(this.nodeIndex++, this.parserKey), tagFilterer);
+            this.currentNode = this.currentNode.createNextNode(new IndexableKey(this.spec.getNextIndex(), this.parserKey), tagFilterer);
         }
 
         private boolean isTagAlreadyUsed(BlixxTag.WithDefinedData<?> parsedTag) {
@@ -206,26 +219,18 @@ public class ParserImpl {
             }
 
             if (tag instanceof BlixxTag.NoData) {
-                return new TagData<>(tag, null);
+                return new TagWithDefinedDataImpl<>(tag, null);
             }
 
             if (tag instanceof BlixxTag.WithDefinedData<?>) {
                 return (BlixxTag.WithDefinedData<T>) tag;
             }
 
-            final BlixxProcessor.Context build = BlixxProcessor.Context.builder()
-                    .blixx(ParserImpl.this.blixx)
-                    .build();
-
-            final T data = tag.createData(build, baseArgumentQueue);
-            return new TagData<>(tag, data);
+            final T data = tag.createData(this.context, baseArgumentQueue);
+            return new TagWithDefinedDataImpl<>(tag, data);
         }
 
-        private <T> TagData<T> tryParsePatternBasedTag(String potentialTag) {
-            final BlixxProcessor.Context build = BlixxProcessor.Context.builder()
-                    .blixx(ParserImpl.this.blixx)
-                    .build();
-
+        private <T> TagWithDefinedDataImpl<T> tryParsePatternBasedTag(String potentialTag) {
             for (final BlixxTag.Pattern<?> patternBasedTag : ParserImpl.this.blixx.parserConfig().patternTags()) {
                 final Pattern pattern = patternBasedTag.getPattern();
                 final Matcher matcher = pattern.matcher(potentialTag);
@@ -233,8 +238,8 @@ public class ParserImpl {
                     continue;
                 }
 
-                final T data = (T) patternBasedTag.createDataOfMatcher(build, matcher);
-                return new TagData<>(((BlixxTag.Pattern<T>) patternBasedTag), data);
+                final T data = (T) patternBasedTag.createDataOfMatcher(this.context, matcher);
+                return new TagWithDefinedDataImpl<>(((BlixxTag.Pattern<T>) patternBasedTag), data);
             }
 
             return null;
@@ -247,11 +252,5 @@ public class ParserImpl {
             this.currentNode.setContent(content);
             this.spec.indexPlaceholdersOf(this.currentNode, ParserImpl.this.blixx);
         }
-    }
-
-    @Data
-    private static class TagData<T> implements BlixxTag.WithDefinedData<T>, BlixxTag.Wrapping<T> {
-        private final BlixxTag<T> originalTag;
-        private final T definedData;
     }
 }

@@ -2,7 +2,7 @@ package dev.oop778.blixx.api.parser.config;
 
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.tag.BlixxTag;
-import dev.oop778.blixx.api.util.Pair;
+import dev.oop778.blixx.util.Pair;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.ApiStatus;

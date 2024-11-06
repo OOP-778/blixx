@@ -1,7 +1,7 @@
 package dev.oop778.blixx.api.placeholder;
 
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
-import dev.oop778.blixx.api.util.UnsafeCast;
+import dev.oop778.blixx.util.UnsafeCast;
 import lombok.NonNull;
 import org.jetbrains.annotations.UnknownNullability;
 
@@ -12,7 +12,7 @@ public interface BlixxPlaceholder<T> {
         return new BlixxPlaceholderBuilder.SelectorStageImpl<>(UnsafeCast::cast);
     }
 
-    static <T> BlixxPlaceholder<T> literal(@NonNull @org.intellij.lang.annotations.Pattern("[a-zA-Z_0-9]+") String key, T value) {
+    static <T> BlixxPlaceholder<T> literal(@NonNull @org.intellij.lang.annotations.Pattern("[a-zA-Z_0-9.]+") String key, T value) {
         return UnsafeCast.cast(builder().literal().withKey(key).withValue(value).build());
     }
 

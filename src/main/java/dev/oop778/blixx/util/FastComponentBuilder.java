@@ -1,4 +1,4 @@
-package dev.oop778.blixx.api.util;
+package dev.oop778.blixx.util;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -56,11 +56,6 @@ public class FastComponentBuilder {
         } catch (Throwable throwable) {
             throw new RuntimeException(throwable);
         }
-    }
-
-    public FastComponentBuilder(int expectedChildren) {
-        this.children = new ArrayList<>(expectedChildren);
-        this.content = "";
     }
 
     public FastComponentBuilder() {

@@ -23,6 +23,7 @@ Here’s why you should use **Blixx**:
 - **Advanced Placeholder & Replacement System**: Blixx offers a highly flexible and robust system for placeholders, making complex replacements easy.
 - **Placeholder Indexing for Speed**: Placeholders are indexed at initialization, allowing rapid replacement throughout the component structure.
 - **Flexible Decoration Replacement**: Supports replacing decorations both during initialization and at build time for dynamic customization.
+- **Recursive Replacement**: Revisits the nodes and checks for new placeholders that has been replaced
 
 ## Benchmark against MiniMessage
 noConversion - means it parses into our tree  

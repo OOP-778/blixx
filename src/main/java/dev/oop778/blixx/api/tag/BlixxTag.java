@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.regex.Matcher;
 
 public interface BlixxTag<DATA> {
-    default DATA createData(BlixxProcessor.@NonNull Context context, @NotNull BaseArgumentQueue args) {
+    default DATA createData(@NonNull BlixxProcessor.@NonNull ParserContext context, @NotNull BaseArgumentQueue args) {
         return null;
     }
 
@@ -51,7 +51,7 @@ public interface BlixxTag<DATA> {
 
     interface WithDefinedData<T> extends BlixxTag<T> {
         @Override
-        default T createData(BlixxProcessor.@NonNull Context context, @NotNull BaseArgumentQueue args) {
+        default T createData(@NonNull BlixxProcessor.ParserContext context, @NotNull BaseArgumentQueue args) {
             return this.getDefinedData();
         }
 
@@ -65,6 +65,6 @@ public interface BlixxTag<DATA> {
     interface Pattern<T> extends BlixxTag<T> {
         java.util.regex.Pattern getPattern();
 
-        T createDataOfMatcher(BlixxProcessor.@NonNull Context context, @NonNull Matcher matcher);
+        T createDataOfMatcher(BlixxProcessor.@NonNull ParserContext context, @NonNull Matcher matcher);
     }
 }

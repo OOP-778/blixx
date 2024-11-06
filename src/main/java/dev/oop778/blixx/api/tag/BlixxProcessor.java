@@ -1,7 +1,10 @@
 package dev.oop778.blixx.api.tag;
 
 import dev.oop778.blixx.api.Blixx;
-import dev.oop778.blixx.api.util.FastComponentBuilder;
+import dev.oop778.blixx.api.parser.ParsingContext;
+import dev.oop778.blixx.api.parser.indexable.IndexableKey;
+import dev.oop778.blixx.util.FastComponentBuilder;
+import dev.oop778.blixx.util.ObjectArray;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -14,7 +17,7 @@ import java.util.List;
 public interface BlixxProcessor {
     interface Tree extends BlixxProcessor {
         interface Filterer extends Tree {
-            void filter(Context context, List<? extends BlixxTag.WithDefinedData<?>> tags);
+            ObjectArray<BlixxTag.WithDefinedData<?>> filter(Context context, ObjectArray<? extends BlixxTag.WithDefinedData<?>> tags);
         }
     }
 
@@ -45,5 +48,14 @@ public interface BlixxProcessor {
     @Getter
     class Context {
         private Blixx blixx;
+    }
+
+    @SuperBuilder
+    class ParserContext extends Context {
+        private ParsingContext parsingContext;
+
+        public IndexableKey createKey() {
+            return this.parsingContext.createNewKey();
+        }
     }
 }

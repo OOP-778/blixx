@@ -1,6 +1,6 @@
 package dev.oop778.blixx.api.component;
 
-import dev.oop778.blixx.api.parser.BlixxNodeImpl;
+import dev.oop778.blixx.api.parser.node.BlixxNodeImpl;
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 import lombok.Getter;
@@ -16,14 +16,10 @@ public class BlixxComponentImpl implements BlixxComponent {
     private final BlixxNodeImpl node;
 
     @Override
-    public BlixxComponent toMutable() {
-        return null;
-    }
-
-    @Override
-    public BlixxComponent replace(List<BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
-        this.node.replace(placeholders, context);
-        return this;
+    public BlixxComponent replace(List<? extends BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
+        final BlixxNodeImpl copy = this.node.copy();
+        copy.replace(placeholders, context);
+        return new BlixxComponentImpl(copy);
     }
 
     @Override
