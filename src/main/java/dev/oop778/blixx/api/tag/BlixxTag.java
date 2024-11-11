@@ -14,9 +14,17 @@ public interface BlixxTag<DATA> {
     BlixxProcessor getProcessor();
 
     default boolean compare(BlixxTag<?> other) {
-        final BlixxTag<DATA> originalTag = this instanceof Wrapping<?> ? ((Wrapping<DATA>) this).getOriginalTag() : this;
-        final BlixxTag<?> otherTag = other instanceof Wrapping<?> ? ((Wrapping<?>) other).getOriginalTag() : other;
-        return originalTag.equals(otherTag);
+        final BlixxTag<?> thisTag = this instanceof Wrapping ? ((Wrapping<?>) this).getOriginalTag() : this;
+        final BlixxTag<?> otherTag = other instanceof Wrapping ? ((Wrapping<?>) other).getOriginalTag() : other;
+
+        if (this instanceof BlixxTag.WithDefinedData && other instanceof BlixxTag.WithDefinedData) {
+            final WithDefinedData<?> thisData = (WithDefinedData<?>) this;
+            final WithDefinedData<?> otherData = (WithDefinedData<?>) other;
+
+            return thisTag.compare(otherTag) && thisData.getDefinedData().equals(otherData.getDefinedData());
+        }
+
+        return thisTag.equals(otherTag);
     }
 
     default boolean canCoexist(@NonNull BlixxProcessor.Context context, @NonNull BlixxTag<?> other) {
@@ -50,6 +58,8 @@ public interface BlixxTag<DATA> {
     }
 
     interface WithDefinedData<T> extends BlixxTag<T> {
+
+
         @Override
         default T createData(@NonNull BlixxProcessor.ParserContext context, @NotNull BaseArgumentQueue args) {
             return this.getDefinedData();
