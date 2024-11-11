@@ -38,9 +38,16 @@ public class HoverTag implements BlixxTag<HoverTag.Action<?>> {
     }
 
     private Action<?> parseShowText(@NotNull BaseArgumentQueue args, @NonNull BlixxProcessor.ParserContext context) {
-        final String text = args.pop();
-        final BlixxNode parse = context.getBlixx().parseIntoNode(text, null);
+        String text = args.pop();
+        if (text.startsWith("\"")) {
+            text = text.substring(1);
+        }
 
+        if (text.endsWith("\"")) {
+            text = text.substring(0, text.length() - 1);
+        }
+
+        final BlixxNode parse = context.getBlixx().parseIntoNode(text, null);
         return new ShowText(parse);
     }
 
@@ -48,7 +55,7 @@ public class HoverTag implements BlixxTag<HoverTag.Action<?>> {
     @Getter
     public abstract static class Action<T> implements Indexable {
         protected final T value;
-        protected final IndexableKey key;
+        protected final Object key;
 
         public abstract void apply(Style.Builder builder);
     }
