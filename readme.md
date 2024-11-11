@@ -29,13 +29,23 @@ Here’s why you should use **Blixx**:
 noConversion - means it parses into our tree  
 withConversion - means it converts to adventure post parsing  
 ```text
-Benchmark                                             Mode  Cnt       Score   Error  Units
-MiniMessageBench.blixxNoConversionNoPlaceholders      avgt        19972.607          ns/op
-MiniMessageBench.blixxPreparsedWithPlaceholders       avgt          159.033          ns/op
-MiniMessageBench.blixxWithConversionNoPlaceholders    avgt        20685.660          ns/op
-MiniMessageBench.blixxWithConversionWithPlaceholders  avgt        21586.034          ns/op
-MiniMessageBench.miniMessageNoPlaceholders            avgt       326655.297          ns/op
-MiniMessageBench.miniMessageWithPlaceholders          avgt       342151.589          ns/op
+Benchmark                                                    Mode  Cnt      Score   Error   Units
+MiniMessageBench.blixxWithKeysParse                         thrpt           0.027          ops/us
+MiniMessageBench.blixxWithKeysReplaceAndToComponent         thrpt           0.018          ops/us
+MiniMessageBench.blixxWithMemoryIndexParse                  thrpt           0.026          ops/us
+MiniMessageBench.blixxWithMemoryIndexReplaceAndToComponent  thrpt           0.017          ops/us
+MiniMessageBench.miniMessageWithPlaceholders                thrpt           0.001          ops/us
+MiniMessageBench.blixxWithKeysParse                          avgt          33.391           us/op
+MiniMessageBench.blixxWithKeysReplaceAndToComponent          avgt          52.453           us/op
+MiniMessageBench.blixxWithMemoryIndexParse                   avgt          37.271           us/op
+MiniMessageBench.blixxWithMemoryIndexReplaceAndToComponent   avgt          60.291           us/op
+MiniMessageBench.miniMessageWithPlaceholders                 avgt         966.316           us/op
+MiniMessageBench.blixxWithKeysParse                            ss        1176.800           us/op
+MiniMessageBench.blixxWithKeysReplaceAndToComponent            ss        3465.000           us/op
+MiniMessageBench.blixxWithMemoryIndexParse                     ss        1916.800           us/op
+MiniMessageBench.blixxWithMemoryIndexReplaceAndToComponent     ss        3688.000           us/op
+MiniMessageBench.miniMessageWithPlaceholders                   ss       10085.100           us/op
+
 ```
 
 ## Placeholders
@@ -60,6 +70,7 @@ BlixxPlaceholder.<String>builder()
                                 })
                                 .build()
 ```
+Example Input
 ```aiignore
 {primary_color}Prefix> {secondary_color}<italic>Hello {secondary_color_5}World
 ```

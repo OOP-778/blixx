@@ -24,7 +24,7 @@ public class BlixxComponentImpl implements BlixxComponent {
 
     @Override
     public @NotNull Component asComponent() {
-        return this.node.build();
+        return this.node.getAdventureComponent();
     }
 
     public BlixxComponent copy() {

@@ -16,6 +16,7 @@ public interface ParserConfig {
     char tagOpen();
     char tagClose();
     boolean strictMode();
+    boolean useKeyBasedIndexing();
     List<Pair<Character, Character>> placeholderFormats();
     List<Pattern> placeholderPatterns();
     List<Character> placeholderCharacters();

@@ -23,7 +23,15 @@ public class ClickTag implements BlixxTag<ClickTag.Action> {
     @Override
     public Action createData(@NotNull BlixxProcessor.ParserContext context, @NotNull BaseArgumentQueue args) {
         final String action = args.pop();
-        final String value = args.pop();
+        String value = args.pop();
+        if (value.startsWith("\"")) {
+            value = value.substring(1);
+        }
+
+        if (value.endsWith("\"")) {
+            value = value.substring(0, value.length() - 1);
+        }
+
         return new Action(ClickEvent.Action.valueOf(action.toUpperCase()), context.createKey(), value);
     }
 
@@ -31,7 +39,7 @@ public class ClickTag implements BlixxTag<ClickTag.Action> {
     @Getter
     public static class Action implements Indexable.WithStringContent {
         private final ClickEvent.Action action;
-        private final IndexableKey key;
+        private final Object key;
         private String value;
 
         @Override

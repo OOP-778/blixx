@@ -4,12 +4,8 @@ import dev.oop778.blixx.api.parser.indexable.Indexable;
 import dev.oop778.blixx.api.tag.BlixxTag;
 import net.kyori.adventure.text.TextComponent;
 
-import java.util.List;
-
 public interface BlixxNode extends Indexable.WithNodeContent {
     BlixxNodeImpl copy();
-
-    dev.oop778.blixx.api.parser.indexable.IndexableKey getKey();
 
     @Override
     default BlixxNode getNode() {
@@ -20,7 +16,7 @@ public interface BlixxNode extends Indexable.WithNodeContent {
 
     TextComponent build();
 
-    boolean hasPlaceholders();
+    boolean hasPlaceholders(boolean withTags);
 
     BlixxNodeSpec getSpec();
 

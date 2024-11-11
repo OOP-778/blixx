@@ -27,9 +27,7 @@ public interface BlixxBuilder {
 
     interface PlaceholderSelectorPart<T> {
         T withStandardPlaceholderConfig();
-
         T withStandardPlaceholderConfig(@NonNull Consumer<PlaceholderConfigurator<?>> consumer);
-
         T withCustomPlaceholderConfig(@NonNull Consumer<PlaceholderConfigurator<?>> consumer);
     }
 
@@ -41,10 +39,13 @@ public interface BlixxBuilder {
         ParserConfigurator<T> withStandardTags();
 
         ParserConfigurator<T> withStandardPlaceholderFormat();
+
         ParserConfigurator<T> withPlaceholderFormat(char start, char end);
 
         ParserConfigurator<T> withTag(@NonNull BlixxTag<?> tag, @NonNull String... keys);
+
         ParserConfigurator<T> withTags(@NonNull Map<String, BlixxTag<?>> tags);
+
         ParserConfigurator<T> withParsePlaceholder(BlixxPlaceholder<String> placeholder);
 
         ParserConfigurator<T> withLegacyColorSupport();
@@ -52,6 +53,8 @@ public interface BlixxBuilder {
         ParserConfigurator<T> withHexColorSupport();
 
         ParserConfigurator<T> withStrictMode();
+
+        ParserConfigurator<T> useKeyBasedPlaceholderIndexing();
     }
 
     interface PlaceholderConfigurator<T> {
@@ -84,8 +87,9 @@ public interface BlixxBuilder {
         private boolean supportsLegacyColorCodes;
         private boolean supportsHexColorCodes;
         private boolean strictMode;
-        private char tagOpen = '<';
-        private char tagClose = '>';
+        private final char tagOpen = '<';
+        private final char tagClose = '>';
+        private boolean useKeyBasedIndexing;
 
         @Override
         public ParserConfigurator<T> withStandardTags() {
@@ -144,8 +148,14 @@ public interface BlixxBuilder {
             return this;
         }
 
+        @Override
+        public ParserConfigurator<T> useKeyBasedPlaceholderIndexing() {
+            this.useKeyBasedIndexing = true;
+            return this;
+        }
+
         protected ParserConfigImpl build() {
-            return new ParserConfigImpl(this.tags, new ArrayList<>(this.formats), this.parsePlaceholders, this.tagOpen, this.tagClose, this.supportsLegacyColorCodes, this.supportsHexColorCodes, this.strictMode);
+            return new ParserConfigImpl(this.tags, new ArrayList<>(this.formats), this.parsePlaceholders, this.tagOpen, this.tagClose, this.supportsLegacyColorCodes, this.supportsHexColorCodes, this.strictMode, this.useKeyBasedIndexing);
         }
     }
 

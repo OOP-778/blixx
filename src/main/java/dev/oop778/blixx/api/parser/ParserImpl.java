@@ -2,9 +2,10 @@ package dev.oop778.blixx.api.parser;
 
 import dev.oop778.blixx.api.Blixx;
 import dev.oop778.blixx.api.parser.config.ParserConfig;
-import dev.oop778.blixx.api.parser.indexable.IndexableKey;
 import dev.oop778.blixx.api.parser.node.BlixxNodeImpl;
 import dev.oop778.blixx.api.parser.node.BlixxNodeSpec;
+import dev.oop778.blixx.api.parser.node.identityspec.BlixxIdentitySpec;
+import dev.oop778.blixx.api.parser.node.keyedspec.BlixxKeyedNodeSpec;
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 import dev.oop778.blixx.api.tag.BlixxProcessor;
@@ -64,9 +65,15 @@ public class ParserImpl {
         final Iterator<BlixxNodeImpl> iterator = node.iterator(true);
         while (iterator.hasNext()) {
             final BlixxNodeImpl next = iterator.next();
-            if (!next.hasPlaceholders()) {
-                next.parseIntoAdventure(this.blixx);
+            if (next.hasPlaceholders(true)) {
+                continue;
             }
+
+            if (next.hasTag(tag -> tag.getProcessor() instanceof BlixxProcessor.Component.Visitor)) {
+                continue;
+            }
+
+            next.parseIntoAdventure();
         }
     }
 
@@ -76,22 +83,23 @@ public class ParserImpl {
         private final StringBuilder builder = new StringBuilder();
         private final Object parserKey;
         private final BlixxNodeSpec spec;
+        private final BlixxProcessor.ParserContext context;
+
         private BlixxNodeImpl currentNode;
         private BlixxTag.WithDefinedData<?> lastParsedTag;
-        private final BlixxProcessor.ParserContext context;
 
         public ParsingContext(String input, String originalInput) {
             this.charQueue = new ArrayCharacterQueue(input);
             this.parserKey = new Object();
-            this.spec = new BlixxNodeSpec(ParserImpl.this.blixx, originalInput, this.parserKey);
-            this.rootNode = new BlixxNodeImpl(new IndexableKey(this.spec.getNextIndex(), this.parserKey), this.spec);
+            this.spec = ParserImpl.this.parserConfig.useKeyBasedIndexing() ? new BlixxKeyedNodeSpec(ParserImpl.this.blixx, originalInput, this.parserKey) : new BlixxIdentitySpec(ParserImpl.this.blixx);
+            this.rootNode = (BlixxNodeImpl) this.spec.createNode();
             this.currentNode = this.rootNode;
             this.context = BlixxProcessor.ParserContext.builder().blixx(ParserImpl.this.blixx).parsingContext(this).build();
         }
 
         @Override
-        public IndexableKey createNewKey() {
-            return new IndexableKey(this.spec.getNextIndex(), this.parserKey);
+        public Object createNewKey() {
+            return this.spec.createNodeKey();
         }
 
         public void parse() {
@@ -153,26 +161,13 @@ public class ParserImpl {
                 return;
             }
 
-            BlixxTag.WithDefinedData<?> toRemoveTag = null;
             final BlixxTag<?> blixxTag = ParserImpl.this.blixx.parserConfig().tags().get(closingTagName);
             if (blixxTag == null) {
                 // TODO: Throw error on strict mode, cause closing a tag that is not open
                 return;
             }
 
-            for (final BlixxTag.WithDefinedData<?> tag : this.currentNode.getTags()) {
-                if (tag.compare(blixxTag)) {
-                    toRemoveTag = tag;
-                    break;
-                }
-            }
-
-            if (toRemoveTag == null) {
-                return;
-            }
-
-            final BlixxTag.WithDefinedData<?> finalToRemoveTag = toRemoveTag;
-            this.moveOntoNewNode(tag -> tag == finalToRemoveTag);
+            this.moveOntoNewNode(nodeTag -> !blixxTag.compare(nodeTag));
         }
 
         private boolean processNewTag(BlixxTag.WithDefinedData<?> parsedTag) {
@@ -199,7 +194,7 @@ public class ParserImpl {
 
         private void moveOntoNewNode(@Nullable Predicate<BlixxTag.WithDefinedData<?>> tagFilterer) {
             this.finishNode();
-            this.currentNode = this.currentNode.createNextNode(new IndexableKey(this.spec.getNextIndex(), this.parserKey), tagFilterer);
+            this.currentNode = this.currentNode.createNextNode(tagFilterer);
         }
 
         private boolean isTagAlreadyUsed(BlixxTag.WithDefinedData<?> parsedTag) {
@@ -250,7 +245,7 @@ public class ParserImpl {
             this.builder.setLength(0);
 
             this.currentNode.setContent(content);
-            this.spec.indexPlaceholdersOf(this.currentNode, ParserImpl.this.blixx);
+            this.currentNode.getSpec().indexPlaceholders(this.currentNode, ParserImpl.this.blixx);
         }
     }
 }
