@@ -15,7 +15,7 @@ public class DecorationTag implements BlixxTag<TextDecoration> {
     public static final Processor PROCESSOR = new Processor();
 
     @Override
-    public TextDecoration createData(BlixxProcessor.@NonNull Context context, @NotNull BaseArgumentQueue args) {
+    public TextDecoration createData(@NonNull BlixxProcessor.@NonNull ParserContext context, @NotNull BaseArgumentQueue args) {
         final String decoration = args.pop();
         return TextDecoration.valueOf(decoration.toUpperCase());
     }

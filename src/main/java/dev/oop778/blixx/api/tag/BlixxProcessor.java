@@ -1,20 +1,18 @@
 package dev.oop778.blixx.api.tag;
 
 import dev.oop778.blixx.api.Blixx;
-import dev.oop778.blixx.api.util.FastComponentBuilder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NonNull;
+import dev.oop778.blixx.api.parser.ParsingContext;
+import dev.oop778.blixx.api.parser.node.BlixxNode;
+import dev.oop778.blixx.util.FastComponentBuilder;
+import dev.oop778.blixx.util.ObjectArray;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import net.kyori.adventure.text.format.Style;
-
-import java.util.List;
 
 public interface BlixxProcessor {
     interface Tree extends BlixxProcessor {
         interface Filterer extends Tree {
-            void filter(Context context, List<? extends BlixxTag.WithDefinedData<?>> tags);
+            ObjectArray<BlixxTag.WithDefinedData<?>> filter(Context context, ObjectArray<? extends BlixxTag.WithDefinedData<?>> tags);
         }
     }
 
@@ -32,11 +30,12 @@ public interface BlixxProcessor {
         @EqualsAndHashCode(callSuper = true)
         class ComponentContext extends Context {
             private Object data;
+            private BlixxTag.WithDefinedData<?> tag;
             private Style.Builder styleBuilder;
             private FastComponentBuilder componentBuilder;
 
             public <T> T getData() {
-                return (T) data;
+                return (T) this.data;
             }
         }
     }
@@ -45,5 +44,17 @@ public interface BlixxProcessor {
     @Getter
     class Context {
         private Blixx blixx;
+
+        @Setter
+        private BlixxNode node;
+    }
+
+    @SuperBuilder
+    class ParserContext extends Context {
+        private ParsingContext parsingContext;
+
+        public Object createKey() {
+            return this.parsingContext.createNewKey();
+        }
     }
 }

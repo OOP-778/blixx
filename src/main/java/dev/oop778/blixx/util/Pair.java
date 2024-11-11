@@ -1,4 +1,4 @@
-package dev.oop778.blixx.api.util;
+package dev.oop778.blixx.util;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

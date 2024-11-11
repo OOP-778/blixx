@@ -1,11 +1,13 @@
 package dev.oop778.blixx.tag.decoration;
 
+import dev.oop778.blixx.api.parser.indexable.Indexable;
+import dev.oop778.blixx.api.parser.indexable.IndexableKey;
 import dev.oop778.blixx.api.tag.BlixxProcessor;
 import dev.oop778.blixx.api.tag.BlixxTag;
 import dev.oop778.blixx.text.argument.BaseArgumentQueue;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.event.ClickEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,17 +21,41 @@ public class ClickTag implements BlixxTag<ClickTag.Action> {
     }
 
     @Override
-    public Action createData(@NotNull BlixxProcessor.Context context, @NotNull BaseArgumentQueue args) {
+    public Action createData(@NotNull BlixxProcessor.ParserContext context, @NotNull BaseArgumentQueue args) {
         final String action = args.pop();
-        final String value = args.pop();
-        return new Action(ClickEvent.Action.valueOf(action.toUpperCase()), value);
+        String value = args.pop();
+        if (value.startsWith("\"")) {
+            value = value.substring(1);
+        }
+
+        if (value.endsWith("\"")) {
+            value = value.substring(0, value.length() - 1);
+        }
+
+        return new Action(ClickEvent.Action.valueOf(action.toUpperCase()), context.createKey(), value);
     }
 
-    @RequiredArgsConstructor
+    @AllArgsConstructor
     @Getter
-    public static class Action {
+    public static class Action implements Indexable.WithStringContent {
         private final ClickEvent.Action action;
-        private final String value;
+        private final Object key;
+        private String value;
+
+        @Override
+        public Indexable copy() {
+            return new Action(this.action, this.key, this.value);
+        }
+
+        @Override
+        public String getContent() {
+            return this.value;
+        }
+
+        @Override
+        public void setContent(String content) {
+            this.value = content;
+        }
     }
 
     public static class Processor implements BlixxProcessor.Component.Decorator<Action> {

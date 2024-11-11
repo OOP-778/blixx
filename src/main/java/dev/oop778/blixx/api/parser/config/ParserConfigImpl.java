@@ -2,7 +2,7 @@ package dev.oop778.blixx.api.parser.config;
 
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.tag.BlixxTag;
-import dev.oop778.blixx.api.util.Pair;
+import dev.oop778.blixx.util.Pair;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.ApiStatus;
@@ -27,8 +27,9 @@ public class ParserConfigImpl implements ParserConfig {
     private final Iterable<BlixxTag.Pattern<?>> patternTags;
     private final List<BlixxPlaceholder<String>> parsePlaceholders;
     private final Map<BlixxTag<?>, List<String>> tagNames;
+    private final boolean useKeyBasedIndexing;
 
-    public ParserConfigImpl(Map<String, BlixxTag<?>> tags, List<Pair<Character, Character>> placeholderFormats, List<BlixxPlaceholder<String>> parsePlaceholders, char tagOpen, char tagClose, boolean supportsLegacyColorCodes, boolean supportsHexColorCodes, boolean strictMode) {
+    public ParserConfigImpl(Map<String, BlixxTag<?>> tags, List<Pair<Character, Character>> placeholderFormats, List<BlixxPlaceholder<String>> parsePlaceholders, char tagOpen, char tagClose, boolean supportsLegacyColorCodes, boolean supportsHexColorCodes, boolean strictMode, boolean useKeyBasedIndexing) {
         this.tags = tags;
         this.placeholderFormats = placeholderFormats;
         this.parsePlaceholders = parsePlaceholders;
@@ -37,6 +38,7 @@ public class ParserConfigImpl implements ParserConfig {
         this.supportsLegacyColorCodes = supportsLegacyColorCodes;
         this.supportsHexColorCodes = supportsHexColorCodes;
         this.strictMode = strictMode;
+        this.useKeyBasedIndexing = useKeyBasedIndexing;
         this.placeholderPatterns = this.initPatterns();
         this.placeholderCharacters = new ArrayList<>(this.placeholderFormats.size() * 2);
 

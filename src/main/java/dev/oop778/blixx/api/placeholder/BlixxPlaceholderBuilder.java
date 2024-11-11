@@ -1,7 +1,7 @@
 package dev.oop778.blixx.api.placeholder;
 
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
-import dev.oop778.blixx.api.util.UnsafeCast;
+import dev.oop778.blixx.util.UnsafeCast;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;

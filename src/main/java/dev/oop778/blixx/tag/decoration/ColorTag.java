@@ -4,12 +4,9 @@ import dev.oop778.blixx.api.tag.BlixxProcessor;
 import dev.oop778.blixx.api.tag.BlixxTag;
 import dev.oop778.blixx.text.argument.BaseArgumentQueue;
 import lombok.NonNull;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.UnknownNullability;
 
 import java.util.regex.Matcher;
 
@@ -86,7 +83,7 @@ public class ColorTag implements BlixxTag.Pattern<TextColor>, ColorChangingTag<T
     }
 
     @Override
-    public TextColor createData(BlixxProcessor.@NonNull Context context, @NotNull BaseArgumentQueue args) {
+    public TextColor createData(@NonNull BlixxProcessor.@NonNull ParserContext context, @NotNull BaseArgumentQueue args) {
         return decode(args.pop());
     }
 
@@ -96,7 +93,7 @@ public class ColorTag implements BlixxTag.Pattern<TextColor>, ColorChangingTag<T
     }
 
     @Override
-    public TextColor createDataOfMatcher(BlixxProcessor.@NonNull Context context, Matcher matcher) {
+    public TextColor createDataOfMatcher(BlixxProcessor.@NonNull ParserContext context, @NotNull Matcher matcher) {
         final String group = matcher.group(1);
         return hexToColor(group);
     }

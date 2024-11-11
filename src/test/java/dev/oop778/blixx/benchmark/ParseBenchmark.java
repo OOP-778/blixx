@@ -1,4 +1,4 @@
-package dev.oop778.blixx;
+package dev.oop778.blixx.benchmark;
 
 import dev.oop778.blixx.api.Blixx;
 import dev.oop778.blixx.api.component.BlixxComponent;
@@ -10,7 +10,7 @@ import java.io.InputStreamReader;
 import java.util.concurrent.TimeUnit;
 import java.util.function.UnaryOperator;
 
-public class Benchmark {
+public class ParseBenchmark {
     private static final String INPUT = """
             <gradient:red:yellow>This is a <bold><italic>deeply nested</italic> string with
             <gradient:green:blue><bold><italic>nested gradients</italic></bold> and
@@ -18,7 +18,7 @@ public class Benchmark {
             We also have multiple <bold>types</bold> of <strikethrough>text decorations</strikethrough> and
             <obfuscated>obfuscated</obfuscated> text for testing purposes.
             <gradient:#ff5555:#5555ff>Another gradient</gradient> with <italic><bold>placeholders</bold>:</italic>
-            <gradient:#00ff00:#0000ff>{primary_color} Primary, {secondary_color} Secondary</gradient>, and more.
+            <gradient:#00ff00:#0000ff>{primary_color} Primary, {secondary_color}Secondary</gradient>, and more.
             <hover:show_text:"Tooltip!"><click:open_url:"https://example.com">Visit website</click></hover>.
             Even more <gradient:#ff0000:#00ff00>complex</gradient> nodes with <gradient:#00ffff:#ff00ff>crazy gradients</gradient> 
             and <hover:show_text:"Hover info"><click:suggest_command:"/help">suggested commands</click></hover>.

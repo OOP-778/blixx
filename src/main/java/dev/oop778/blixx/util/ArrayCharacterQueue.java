@@ -143,6 +143,10 @@ public class ArrayCharacterQueue {
         return -1;
     }
 
+    public void jump(int parsingStart) {
+        this.index = parsingStart;
+    }
+
     @FunctionalInterface
     public interface StringCharPredicate {
         boolean test(String currentString, char current);

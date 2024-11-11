@@ -2,7 +2,7 @@ package dev.oop778.blixx.api.parser.config;
 
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.tag.BlixxTag;
-import dev.oop778.blixx.api.util.Pair;
+import dev.oop778.blixx.util.Pair;
 
 import java.util.List;
 import java.util.Map;
@@ -16,6 +16,7 @@ public interface ParserConfig {
     char tagOpen();
     char tagClose();
     boolean strictMode();
+    boolean useKeyBasedIndexing();
     List<Pair<Character, Character>> placeholderFormats();
     List<Pattern> placeholderPatterns();
     List<Character> placeholderCharacters();

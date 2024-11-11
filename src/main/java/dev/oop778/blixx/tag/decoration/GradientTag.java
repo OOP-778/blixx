@@ -1,12 +1,13 @@
 package dev.oop778.blixx.tag.decoration;
 
+import dev.oop778.blixx.api.parser.node.BlixxNode;
+import dev.oop778.blixx.api.parser.node.BlixxNodeImpl;
 import dev.oop778.blixx.api.tag.BlixxProcessor;
 import dev.oop778.blixx.api.tag.BlixxTag;
-import dev.oop778.blixx.api.util.FastComponentBuilder;
 import dev.oop778.blixx.text.argument.BaseArgumentQueue;
+import dev.oop778.blixx.util.FastComponentBuilder;
 import lombok.Data;
 import lombok.NonNull;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +25,7 @@ public class GradientTag implements ColorChangingTag<GradientTag.GradientTagData
     }
 
     @Override
-    public GradientTagData createData(BlixxProcessor.@NonNull Context context, @NotNull BaseArgumentQueue args) {
+    public GradientTagData createData(@NonNull BlixxProcessor.@NonNull ParserContext context, @NotNull BaseArgumentQueue args) {
         final List<TextColor> colors = new ArrayList<>(args.size());
         float phase = 0;
 
@@ -36,6 +37,10 @@ public class GradientTag implements ColorChangingTag<GradientTag.GradientTagData
                     phase = Float.parseFloat(pop);
                 } catch (NumberFormatException ignored) {
                 }
+            }
+
+            if (decode == null) {
+                throw new IllegalStateException(String.format("Failed to parse color %s", pop));
             }
 
             colors.add(decode);
@@ -59,31 +64,39 @@ public class GradientTag implements ColorChangingTag<GradientTag.GradientTagData
         @Override
         public void visit(@NonNull ComponentContext context) {
             final GradientTagData data = context.getData();
-            final String content = context.getComponentBuilder().getContent();
+            final StringBuilder contentBefore = this.buildContentBefore((BlixxNodeImpl) context.getNode(), context.getTag());
+
+            final String content = context.getNode().getContent();
             if (content.isEmpty() || data.getColors().length == 0) {
                 return;
             }
 
+            final int[] chars = content.chars()
+                    .filter(codePoint -> !Character.isWhitespace(codePoint))
+                    .toArray();
+
             final TextColor[] colors = data.getColors();
             final float phase = data.getPhase();
             final int colorCount = colors.length;
-            final int length = content.length();
+            final int length = chars.length;
 
             final int totalCharacters = Math.max(1, length - 1);
             final float deltaPosition = 1.0f / totalCharacters;
-            float position = phase / totalCharacters;
-            final int maxColorIndex = colorCount - 1;
 
-            final FastComponentBuilder builder = context.getComponentBuilder();
+            float position = (contentBefore.length() + phase) / Math.max(1, totalCharacters + contentBefore.length());
+            final int maxColorIndex = colorCount - 1;
 
             TextColor lastInterpolatedColor = null;
             Style lastStyle = null;
 
-            for (int i = 0; i < length; i++) {
-                final char currentChar = content.charAt(i);
+            final String nodeContent = context.getNode().getContent();
+            final FastComponentBuilder fastComponentBuilder = context.getComponentBuilder();
+
+            for (int i = 0; i < nodeContent.length(); i++) {
+                final char currentChar = nodeContent.charAt(i);
 
                 if (Character.isWhitespace(currentChar)) {
-                    builder.append(net.kyori.adventure.text.Component.text(currentChar));
+                    fastComponentBuilder.append(net.kyori.adventure.text.Component.text(currentChar));
                     continue;
                 }
 
@@ -92,20 +105,43 @@ public class GradientTag implements ColorChangingTag<GradientTag.GradientTagData
                 final int endColorIndex = Math.min(startColorIndex + 1, maxColorIndex);
 
                 final float interpolation = adjustedPosition - startColorIndex;
+
+                if (endColorIndex >= colors.length) {
+                    throw new IllegalStateException(String.format("Failed to append gradient to %s", content));
+                }
+
                 final TextColor interpolatedColor = this.interpolateColor(colors[startColorIndex], colors[endColorIndex], interpolation);
 
                 if (interpolatedColor.equals(lastInterpolatedColor)) {
-                    builder.append(net.kyori.adventure.text.Component.text(currentChar, lastStyle));
+                    fastComponentBuilder.append(net.kyori.adventure.text.Component.text(currentChar, lastStyle));
                 } else {
                     lastInterpolatedColor = interpolatedColor;
                     lastStyle = Style.style(interpolatedColor);
-                    builder.append(net.kyori.adventure.text.Component.text(currentChar, lastStyle));
+                    fastComponentBuilder.append(net.kyori.adventure.text.Component.text(currentChar, lastStyle));
                 }
 
                 position += deltaPosition;
             }
 
-            builder.setContent("");
+            fastComponentBuilder.setContent("");  // Clear the content for the current node
+        }
+
+        protected StringBuilder buildContentBefore(BlixxNodeImpl from, BlixxTag<?> tag) {
+            final StringBuilder builder = new StringBuilder();
+
+            BlixxNodeImpl current = from.getPrevious();
+            while (current != null && current.hasTag(tag::compare)) {
+                for (final char c : current.getContent().toCharArray()) {
+                    if (!Character.isWhitespace(c)) {
+                        builder.append(c);
+                        break;
+                    }
+                }
+
+                current = current.getPrevious();
+            }
+
+            return builder;
         }
 
         protected TextColor interpolateColor(TextColor startColor, TextColor endColor, float factor) {
