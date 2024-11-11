@@ -79,7 +79,8 @@ public class ObjectArray<T> implements Iterable<T> {
             }
         }
 
-        return new ObjectArray<>(copy);
+        // size down
+        return new ObjectArray<>(index == size ? copy : Arrays.copyOf(copy, index));
     }
 
     @CheckReturnValue
@@ -108,8 +109,32 @@ public class ObjectArray<T> implements Iterable<T> {
         this.array[position] = object;
     }
 
+    public boolean equals(ObjectArray<T> array) {
+        final Iterator<T> iterator = this.iterator();
+        final Iterator<T> otherIterator = array.iterator();
+
+        while (iterator.hasNext()) {
+            if (!otherIterator.hasNext()) {
+                return false;
+            }
+
+            final T object = iterator.next();
+            final T otherObject = otherIterator.next();
+
+            if (!Objects.equals(object, otherObject)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public Stream<T> stream() {
         return Arrays.stream(this.array, 0, this.index).filter(Objects::nonNull);
+    }
+
+    public ObjectArray<T> copy() {
+        return new ObjectArray<>(this);
     }
 
     private void expand() {
