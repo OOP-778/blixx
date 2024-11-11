@@ -7,7 +7,6 @@
 Currently Blixx is still in development...
 
 TODO
-- Implement Decoration replacement
 - Implement Placeholder caching
 - Implement Replacer interfaces
 
