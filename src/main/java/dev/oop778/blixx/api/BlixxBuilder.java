@@ -1,10 +1,13 @@
 package dev.oop778.blixx.api;
 
+import dev.oop778.blixx.api.formatter.BlixxDefaultFormatters;
+import dev.oop778.blixx.api.formatter.BlixxFormatters;
 import dev.oop778.blixx.api.parser.config.ParserConfigImpl;
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.placeholder.PlaceholderConfigImpl;
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContextImpl;
 import dev.oop778.blixx.api.tag.BlixxTag;
+import dev.oop778.blixx.api.tag.BlixxTags;
 import dev.oop778.blixx.util.Pair;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +30,9 @@ public interface BlixxBuilder {
 
     interface PlaceholderSelectorPart<T> {
         T withStandardPlaceholderConfig();
+
         T withStandardPlaceholderConfig(@NonNull Consumer<PlaceholderConfigurator<?>> consumer);
+
         T withCustomPlaceholderConfig(@NonNull Consumer<PlaceholderConfigurator<?>> consumer);
     }
 
@@ -48,12 +53,6 @@ public interface BlixxBuilder {
 
         ParserConfigurator<T> withParsePlaceholder(BlixxPlaceholder<String> placeholder);
 
-        ParserConfigurator<T> withLegacyColorSupport();
-
-        ParserConfigurator<T> withHexColorSupport();
-
-        ParserConfigurator<T> withStrictMode();
-
         ParserConfigurator<T> useKeyBasedPlaceholderIndexing();
     }
 
@@ -72,11 +71,13 @@ public interface BlixxBuilder {
     interface PlaceholderFormatterConfigurator<T> {
         PlaceholderFormatterConfigurator<T> withStandard();
 
-        <I> PlaceholderFormatterConfigurator<T> withFormatter(Class<I> clazz, Function<I, Object> formatter);
+        PlaceholderFormatterConfigurator<T> withFormatters(BlixxFormatters formatters);
     }
 
     interface PlaceholderDefaultContextConfigurator<T> {
-        <C> PlaceholderDefaultContextConfigurator<T> withDefaultContext(@NonNull C instance, boolean hierarchy);
+        <C> PlaceholderDefaultContextConfigurator<T> withDefaultInheritanceContext(@NonNull C instance);
+
+        <C> PlaceholderDefaultContextConfigurator<T> withDefaultContext(@NonNull C instance);
     }
 
     @ApiStatus.Internal
@@ -84,23 +85,18 @@ public interface BlixxBuilder {
         private final Map<String, BlixxTag<?>> tags = new HashMap<>();
         private final Set<Pair<Character, Character>> formats = new HashSet<>();
         private final List<BlixxPlaceholder<String>> parsePlaceholders = new ArrayList<>();
-        private boolean supportsLegacyColorCodes;
-        private boolean supportsHexColorCodes;
-        private boolean strictMode;
         private final char tagOpen = '<';
         private final char tagClose = '>';
         private boolean useKeyBasedIndexing;
 
         @Override
         public ParserConfigurator<T> withStandardTags() {
-            // Implementation...
-            return this;
+            return this.withTags(BlixxTags.DEFAULT_TAGS);
         }
 
         @Override
         public ParserConfigurator<T> withStandardPlaceholderFormat() {
-            // TODO: Add standard formats
-            return this;
+            return this.withPlaceholderFormat('<', '>');
         }
 
         @Override
@@ -131,31 +127,13 @@ public interface BlixxBuilder {
         }
 
         @Override
-        public ParserConfigurator<T> withLegacyColorSupport() {
-            this.supportsLegacyColorCodes = true;
-            return this;
-        }
-
-        @Override
-        public ParserConfigurator<T> withHexColorSupport() {
-            this.supportsHexColorCodes = true;
-            return this;
-        }
-
-        @Override
-        public ParserConfigurator<T> withStrictMode() {
-            this.strictMode = true;
-            return this;
-        }
-
-        @Override
         public ParserConfigurator<T> useKeyBasedPlaceholderIndexing() {
             this.useKeyBasedIndexing = true;
             return this;
         }
 
         protected ParserConfigImpl build() {
-            return new ParserConfigImpl(this.tags, new ArrayList<>(this.formats), this.parsePlaceholders, this.tagOpen, this.tagClose, this.supportsLegacyColorCodes, this.supportsHexColorCodes, this.strictMode, this.useKeyBasedIndexing);
+            return new ParserConfigImpl(this.tags, new ArrayList<>(this.formats), this.parsePlaceholders, this.tagOpen, this.tagClose, this.useKeyBasedIndexing);
         }
     }
 
@@ -171,6 +149,7 @@ public interface BlixxBuilder {
                 consumer.accept(formatter);
                 return formatter;
             });
+
             return this;
         }
 
@@ -187,8 +166,8 @@ public interface BlixxBuilder {
             final PlaceholderFormatterConfiguratorImpl<?> formatterConfigurator = this.formatter.apply(new PlaceholderFormatterConfiguratorImpl<>());
             final PlaceholderDefaultContextConfiguratorImpl<?> contextConfigurator = this.defaultContext.apply(new PlaceholderDefaultContextConfiguratorImpl<>());
             return new PlaceholderConfigImpl(
-                    formatterConfigurator.formatters,
-                    contextConfigurator.context
+                    formatterConfigurator.defaultFormatters,
+                    contextConfigurator.defaultContext
             );
         }
     }
@@ -196,17 +175,17 @@ public interface BlixxBuilder {
     @ApiStatus.Internal
     @RequiredArgsConstructor
     class PlaceholderFormatterConfiguratorImpl<T> implements PlaceholderFormatterConfigurator<T> {
-        private final Map<Class<?>, Function<?, Object>> formatters = new IdentityHashMap<>();
+        private BlixxFormatters defaultFormatters;
 
         @Override
         public PlaceholderFormatterConfigurator<T> withStandard() {
-            // TODO: Add standard formatters
+            this.defaultFormatters = BlixxDefaultFormatters.getDefault();
             return this;
         }
 
         @Override
-        public <I> PlaceholderFormatterConfigurator<T> withFormatter(Class<I> clazz, Function<I, Object> formatter) {
-            this.formatters.put(clazz, formatter);
+        public PlaceholderFormatterConfigurator<T> withFormatters(BlixxFormatters formatters) {
+            this.defaultFormatters = formatters;
             return this;
         }
     }
@@ -214,16 +193,17 @@ public interface BlixxBuilder {
     @ApiStatus.Internal
     @RequiredArgsConstructor
     class PlaceholderDefaultContextConfiguratorImpl<T> implements PlaceholderDefaultContextConfigurator<T> {
-        private final PlaceholderContextImpl context = new PlaceholderContextImpl();
+        private final PlaceholderContextImpl defaultContext = new PlaceholderContextImpl();
 
         @Override
-        public <C> PlaceholderDefaultContextConfigurator<T> withDefaultContext(@NonNull C instance, boolean hierarchy) {
-            if (hierarchy) {
-                this.context.registerForHierarchy(instance);
-            } else {
-                this.context.register(instance);
-            }
+        public <C> PlaceholderDefaultContextConfigurator<T> withDefaultInheritanceContext(@NonNull C instance) {
+            this.defaultContext.registerForHierarchy(instance);
+            return this;
+        }
 
+        @Override
+        public <C> PlaceholderDefaultContextConfigurator<T> withDefaultContext(@NonNull C instance) {
+            this.defaultContext.register(instance);
             return this;
         }
     }
@@ -242,7 +222,13 @@ public interface BlixxBuilder {
 
         @Override
         public Impl withStandardParserConfig() {
-            // TODO: Create standard parser config
+            this.parserConfigurator = configurator -> {
+                configurator
+                        .withStandardPlaceholderFormat()
+                        .withStandardTags();
+                return configurator;
+            };
+
             return this;
         }
 
@@ -269,7 +255,10 @@ public interface BlixxBuilder {
 
         @Override
         public Impl withStandardPlaceholderConfig() {
-            // TODO: Add standard placeholder config
+            this.placeholderConfigurator = (configurator) -> {
+                configurator.withFormatter(PlaceholderFormatterConfigurator::withStandard);
+                return configurator;
+            };
             return this;
         }
 
