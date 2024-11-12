@@ -1,4 +1,4 @@
-package dev.oop778.blixx.util;
+package dev.oop778.blixx.util.collection;
 
 import java.util.NoSuchElementException;
 

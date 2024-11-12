@@ -10,6 +10,7 @@ import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.ApiStatus;
 
 @ApiStatus.Internal

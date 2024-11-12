@@ -9,7 +9,7 @@ import dev.oop778.blixx.api.parser.node.BlixxNodeImpl;
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 import dev.oop778.blixx.api.tag.BlixxTag;
-import dev.oop778.blixx.util.ObjectArray;
+import dev.oop778.blixx.util.collection.ObjectArray;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Collection;

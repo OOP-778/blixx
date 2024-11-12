@@ -4,7 +4,7 @@ import dev.oop778.blixx.api.Blixx;
 import dev.oop778.blixx.api.parser.ParsingContext;
 import dev.oop778.blixx.api.parser.node.BlixxNode;
 import dev.oop778.blixx.util.FastComponentBuilder;
-import dev.oop778.blixx.util.ObjectArray;
+import dev.oop778.blixx.util.collection.ObjectArray;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import net.kyori.adventure.text.format.Style;

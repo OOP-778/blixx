@@ -11,7 +11,7 @@ import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 import dev.oop778.blixx.api.tag.BlixxProcessor;
 import dev.oop778.blixx.api.tag.BlixxTag;
 import dev.oop778.blixx.text.argument.BaseArgumentQueue;
-import dev.oop778.blixx.util.ArrayCharacterQueue;
+import dev.oop778.blixx.util.collection.ArrayCharacterQueue;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;

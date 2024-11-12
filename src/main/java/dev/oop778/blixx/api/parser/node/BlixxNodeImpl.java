@@ -8,7 +8,7 @@ import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 import dev.oop778.blixx.api.tag.BlixxProcessor;
 import dev.oop778.blixx.api.tag.BlixxTag;
 import dev.oop778.blixx.util.FastComponentBuilder;
-import dev.oop778.blixx.util.ObjectArray;
+import dev.oop778.blixx.util.collection.ObjectArray;
 import dev.oop778.blixx.util.StyleBuilder;
 import lombok.Getter;
 import lombok.Setter;

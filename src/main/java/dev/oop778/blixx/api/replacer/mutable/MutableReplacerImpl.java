@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class MutableReplacerImpl implements MutableReplacer{
@@ -17,8 +18,12 @@ public class MutableReplacerImpl implements MutableReplacer{
     private final List<BlixxPlaceholder<?>> placeholders;
 
     public MutableReplacerImpl(@Nullable Blixx blixx) {
+        this(blixx, new ArrayList<>(2));
+    }
+
+    public MutableReplacerImpl(Blixx blixx, ArrayList<BlixxPlaceholder<?>> placeholders) {
         this.blixx = blixx;
-        this.placeholders = new ArrayList<>();
+        this.placeholders = placeholders;
     }
 
     @Override
@@ -31,7 +36,7 @@ public class MutableReplacerImpl implements MutableReplacer{
 
     @Override
     public Iterable<? extends BlixxPlaceholder<?>> getPlaceholders() {
-        return this.placeholders;
+        return Collections.unmodifiableList(this.placeholders);
     }
 
     @Override

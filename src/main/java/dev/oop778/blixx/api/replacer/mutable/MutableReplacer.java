@@ -18,7 +18,7 @@ public interface MutableReplacer extends ReplacerAcceptable, PlaceholderHolder<M
     }
 
     static MutableReplacer create(@Nullable Blixx blixx) {
-        return null;
+        return new MutableReplacerImpl(blixx);
     }
 
     @CheckReturnValue

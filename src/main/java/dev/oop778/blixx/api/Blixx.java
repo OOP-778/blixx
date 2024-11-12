@@ -14,12 +14,14 @@ public interface Blixx {
     }
 
     ParserConfig parserConfig();
+
     PlaceholderConfig placeholderConfig();
+
+    BlixxComponent parse(@NonNull String input, PlaceholderContext context);
+
+    BlixxNode parseIntoNode(@NonNull String input, PlaceholderContext context);
 
     default BlixxComponent parse(@NonNull String input) {
         return this.parse(input, null);
     }
-
-    BlixxComponent parse(@NonNull String input, PlaceholderContext context);
-    BlixxNode parseIntoNode(@NonNull String input, PlaceholderContext context);
 }

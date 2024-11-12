@@ -4,6 +4,7 @@ import dev.oop778.blixx.api.Blixx;
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 import dev.oop778.blixx.api.replacer.mutable.MutableReplacer;
+import dev.oop778.blixx.api.replacer.mutable.MutableReplacerImpl;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +34,7 @@ public class ReplacerImpl implements Replacer {
 
     @Override
     public MutableReplacer toMutable() {
-        return null;
+        return new MutableReplacerImpl(this.blixx, new ArrayList<>(this.placeholders));
     }
 
     @Override
