@@ -1,11 +1,9 @@
 package dev.oop778.blixx.api.replacer.mutable;
 
-import dev.oop778.blixx.api.Blixx;
 import dev.oop778.blixx.api.replacer.PlaceholderHolder;
 import dev.oop778.blixx.api.replacer.ReplacerAcceptable;
 import dev.oop778.blixx.api.replacer.immutable.Replacer;
 import org.jetbrains.annotations.CheckReturnValue;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * The Replacer interface provides a mechanism for registering placeholders
@@ -13,12 +11,9 @@ import org.jetbrains.annotations.Nullable;
  * based on various contexts.
  */
 public interface MutableReplacer extends ReplacerAcceptable, PlaceholderHolder<MutableReplacer> {
-    static MutableReplacer create() {
-        return create(null);
-    }
 
-    static MutableReplacer create(@Nullable Blixx blixx) {
-        return new MutableReplacerImpl(blixx);
+    static MutableReplacer create() {
+        return new MutableReplacerImpl();
     }
 
     @CheckReturnValue

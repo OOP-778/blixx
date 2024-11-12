@@ -12,7 +12,7 @@ public class NodeReplacementKeyed extends AbstractNodeReplacement {
     private final Map<String, List<Indexable>> placeholderToNode;
     private final Set<Indexable> toCheckForNewPlaceholders;
 
-    public NodeReplacementKeyed(BlixxNodeImpl node, List<? extends BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
+    public NodeReplacementKeyed(BlixxNodeImpl node, Iterable<? extends BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
         super(node, placeholders, context);
         this.placeholderToNode = this.collectPlaceholders();
         this.toCheckForNewPlaceholders = new HashSet<>();

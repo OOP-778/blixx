@@ -1,8 +1,6 @@
 package dev.oop778.blixx.tag.decoration;
 
-import dev.oop778.blixx.api.component.BlixxComponent;
 import dev.oop778.blixx.api.parser.indexable.Indexable;
-import dev.oop778.blixx.api.parser.indexable.IndexableKey;
 import dev.oop778.blixx.api.parser.node.BlixxNode;
 import dev.oop778.blixx.api.tag.BlixxProcessor;
 import dev.oop778.blixx.api.tag.BlixxTag;
@@ -47,7 +45,7 @@ public class HoverTag implements BlixxTag<HoverTag.Action<?>> {
             text = text.substring(0, text.length() - 1);
         }
 
-        final BlixxNode parse = context.getBlixx().parseIntoNode(text, null);
+        final BlixxNode parse = context.getBlixx().parseNode(text, null);
         return new ShowText(parse);
     }
 

@@ -6,7 +6,7 @@ import dev.oop778.blixx.api.tag.BlixxTag;
 public interface ComponentDecoration {
     static ComponentDecoration of(String input) {
         return (blixx) -> {
-            final BlixxComponent parse = blixx.parse(input);
+            final BlixxComponent parse = blixx.parseComponent(input);
             return ((BlixxComponentImpl) parse).getNode().getTags();
         };
     }

@@ -38,7 +38,7 @@ public class ParseBenchmark {
 
         long startTime = System.currentTimeMillis();
         while (System.currentTimeMillis() - startTime < WARMUP_TIME_SECONDS * 1000) {
-            final BlixxComponent parse = blixx.parse(INPUT);
+            final BlixxComponent parse = blixx.parseComponent(INPUT);
             UnaryOperator.identity().apply(parse.asComponent());
         }
 
@@ -50,7 +50,7 @@ public class ParseBenchmark {
         startTime = System.currentTimeMillis();
         int times = 0;
         while (System.currentTimeMillis() - startTime < RUN_TIME_SECONDS * 1000) {
-            UnaryOperator.identity().apply(blixx.parse(INPUT));
+            UnaryOperator.identity().apply(blixx.parseComponent(INPUT));
             times++;
         }
 

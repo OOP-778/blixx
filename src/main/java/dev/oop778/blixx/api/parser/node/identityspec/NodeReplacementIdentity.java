@@ -16,7 +16,7 @@ import java.util.*;
 public class NodeReplacementIdentity extends AbstractNodeReplacement {
     private final List<Indexable> toRevisit = new ArrayList<>();
 
-    public NodeReplacementIdentity(BlixxNodeImpl rootNode, List<? extends BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
+    public NodeReplacementIdentity(BlixxNodeImpl rootNode, Iterable<? extends BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
         super(rootNode, placeholders, context);
     }
 

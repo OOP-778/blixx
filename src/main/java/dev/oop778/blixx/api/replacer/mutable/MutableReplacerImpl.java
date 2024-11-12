@@ -1,37 +1,32 @@
 package dev.oop778.blixx.api.replacer.mutable;
 
-import dev.oop778.blixx.api.Blixx;
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
-import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
+import dev.oop778.blixx.api.replacer.action.ReplaceAction;
+import dev.oop778.blixx.api.replacer.action.ReplaceActionImpl;
 import dev.oop778.blixx.api.replacer.immutable.Replacer;
 import dev.oop778.blixx.api.replacer.immutable.ReplacerImpl;
+import dev.oop778.blixx.util.UnsafeCast;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class MutableReplacerImpl implements MutableReplacer{
-    private final Blixx blixx;
+public class MutableReplacerImpl implements MutableReplacer {
     private final List<BlixxPlaceholder<?>> placeholders;
 
-    public MutableReplacerImpl(@Nullable Blixx blixx) {
-        this(blixx, new ArrayList<>(2));
+    public MutableReplacerImpl() {
+        this(new ArrayList<>(2));
     }
 
-    public MutableReplacerImpl(Blixx blixx, ArrayList<BlixxPlaceholder<?>> placeholders) {
-        this.blixx = blixx;
+    public MutableReplacerImpl(ArrayList<BlixxPlaceholder<?>> placeholders) {
         this.placeholders = placeholders;
     }
 
     @Override
     public Replacer toImmutable() {
-        return new ReplacerImpl(
-                this.blixx,
-                new ArrayList<>(this.placeholders)
-        );
+        return new ReplacerImpl(new ArrayList<>(this.placeholders));
     }
 
     @Override
@@ -51,7 +46,7 @@ public class MutableReplacerImpl implements MutableReplacer{
     }
 
     @Override
-    public <T> T accept(@NotNull T object, @Nullable PlaceholderContext context) {
-        return null;
+    public <T> ReplaceAction<T> accept(@NotNull T object) {
+        return UnsafeCast.cast(new ReplaceActionImpl(object, this));
     }
 }

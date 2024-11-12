@@ -5,6 +5,5 @@ import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 
 public interface PlaceholderConfig {
     BlixxFormatters defaultFormatters();
-
     PlaceholderContext defaultContext();
 }

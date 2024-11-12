@@ -23,7 +23,7 @@ public class MiniMessageFormatTesting extends BaseBlixxTest {
     }
 
     private void testInput(String input) {
-        final Component blixxParse = BLIXX.parse(input).asComponent();
+        final Component blixxParse = BLIXX.parseComponent(input).asComponent();
         final Component adventureParse = MINI_MESSAGE.deserialize(input);
         this.compareComponents(adventureParse, blixxParse);
     }

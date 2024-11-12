@@ -57,7 +57,7 @@ public class BlixxIdentityNodeImpl extends BlixxNodeImpl {
     }
 
     @Override
-    public void replace(List<? extends BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
+    public void replace(Iterable<? extends BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
         new NodeReplacementIdentity(this, placeholders, context).work();
     }
 

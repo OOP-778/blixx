@@ -1,10 +1,11 @@
 package dev.oop778.blixx.api.replacer.immutable;
 
-import dev.oop778.blixx.api.Blixx;
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
-import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
+import dev.oop778.blixx.api.replacer.action.ReplaceAction;
+import dev.oop778.blixx.api.replacer.action.ReplaceActionImpl;
 import dev.oop778.blixx.api.replacer.mutable.MutableReplacer;
 import dev.oop778.blixx.api.replacer.mutable.MutableReplacerImpl;
+import dev.oop778.blixx.util.UnsafeCast;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,30 +17,23 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class ReplacerImpl implements Replacer {
-    private final Blixx blixx;
     private final List<BlixxPlaceholder<?>> placeholders;
 
-    public ReplacerImpl(@Nullable Blixx blixx) {
-        this(blixx, new ArrayList<>(2));
+    public ReplacerImpl() {
+        this(new ArrayList<>(2));
     }
 
-    public ReplacerImpl(@Nullable Blixx blixx, List<BlixxPlaceholder<?>> placeholders) {
-        this.blixx = blixx;
+    public ReplacerImpl(List<BlixxPlaceholder<?>> placeholders) {
         this.placeholders = placeholders;
     }
 
-    public ReplacerImpl(@Nullable Blixx blixx, @Nullable BlixxPlaceholder<?>[] placeholders) {
-        this(blixx, Arrays.asList(placeholders));
+    public ReplacerImpl(@Nullable BlixxPlaceholder<?>[] placeholders) {
+        this(Arrays.asList(placeholders));
     }
 
     @Override
     public MutableReplacer toMutable() {
-        return new MutableReplacerImpl(this.blixx, new ArrayList<>(this.placeholders));
-    }
-
-    @Override
-    public <T> T accept(@NotNull T object, @Nullable PlaceholderContext context) {
-        return null;
+        return new MutableReplacerImpl(new ArrayList<>(this.placeholders));
     }
 
     @Override
@@ -58,8 +52,13 @@ public class ReplacerImpl implements Replacer {
         });
     }
 
+    @Override
+    public <T> ReplaceAction<T> accept(@NotNull T object) {
+        return UnsafeCast.cast(new ReplaceActionImpl(object, this));
+    }
+
     public Replacer modifyAction(Consumer<ReplacerImpl> consumer) {
-        final ReplacerImpl copy = new ReplacerImpl(this.blixx, new ArrayList<>(this.placeholders));
+        final ReplacerImpl copy = new ReplacerImpl(new ArrayList<>(this.placeholders));
         consumer.accept(copy);
         return copy;
     }

@@ -183,7 +183,7 @@ public abstract class BlixxNodeImpl implements BlixxNode {
         this.adventureComponent = this.buildAdventure();
     }
 
-    public void replace(List<? extends BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
+    public void replace(Iterable<? extends BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
         final NodeReplacementKeyed nodeReplacement = new NodeReplacementKeyed(this, placeholders, context);
         nodeReplacement.work();
     }

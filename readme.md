@@ -7,7 +7,6 @@
 Currently Blixx is still in development...
 
 TODO
-- Implement actual replacing logic from Replacer
 - Implement Placeholder caching
 - QOL & Cleaning up (maybe I should move impl classes out of api)
 - Release

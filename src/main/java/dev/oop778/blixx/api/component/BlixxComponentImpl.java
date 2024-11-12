@@ -17,7 +17,7 @@ public class BlixxComponentImpl implements BlixxComponent {
     private final BlixxNodeImpl node;
 
     @Override
-    public BlixxComponent replace(List<? extends BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
+    public BlixxComponent replace(Iterable<? extends BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
         final BlixxNodeImpl copy = this.node.copy();
         copy.replace(placeholders, context);
         return new BlixxComponentImpl(copy);

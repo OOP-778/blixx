@@ -54,7 +54,7 @@ public class ReplaceBenchmark {
                 .withStandardPlaceholderConfig()
                 .build();
 
-        final BlixxComponent preparsed = blixx.parse(INPUT);
+        final BlixxComponent preparsed = blixx.parseComponent(INPUT);
         final List<BlixxPlaceholder<String>> placeholders = List.of(
                 BlixxPlaceholder.literal("placeholder_1", "First placeholder"),
                 BlixxPlaceholder.literal("placeholder_2", "Second placeholder"),

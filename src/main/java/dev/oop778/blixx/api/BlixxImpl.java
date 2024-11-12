@@ -10,7 +10,6 @@ import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.ApiStatus;
 
 @ApiStatus.Internal
@@ -28,13 +27,13 @@ public class BlixxImpl implements Blixx {
     }
 
     @Override
-    public BlixxComponent parse(@NonNull String input, PlaceholderContext context) {
+    public BlixxComponent parseComponent(@NonNull String input, PlaceholderContext context) {
         final BlixxNodeImpl parse = this.parser.parse(input, context);
         return new BlixxComponentImpl(parse);
     }
 
     @Override
-    public BlixxNodeImpl parseIntoNode(@NonNull String input, PlaceholderContext context) {
+    public BlixxNodeImpl parseNode(@NonNull String input, PlaceholderContext context) {
         return this.parser.parse(input, context);
     }
 }

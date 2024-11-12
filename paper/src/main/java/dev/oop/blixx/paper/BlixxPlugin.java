@@ -71,7 +71,7 @@ public class BlixxPlugin extends JavaPlugin {
                         placeholders.put(placeholder, value);
                     }
 
-                    final BlixxComponent parse = this.blixx.parse(input.toString(), PlaceholderContext.create(colorScheme));
+                    final BlixxComponent parse = this.blixx.parseComponent(input.toString(), PlaceholderContext.create(colorScheme));
                     final BlixxComponent blixxComponent = parse.replace(this.parseBlixxPlaceholders(placeholders), null);
 
                     for (final Component component : AdventureComponentSplitter.split(Component.newline(),blixxComponent.asComponent())) {
@@ -129,7 +129,7 @@ public class BlixxPlugin extends JavaPlugin {
                             BlixxPlaceholder.literal("placeholder_10", "Tenth placeholder")
                     );
 
-                    final BlixxComponent parse = this.blixx.parse(input, PlaceholderContext.create(colorScheme));
+                    final BlixxComponent parse = this.blixx.parseComponent(input, PlaceholderContext.create(colorScheme));
                     for (final Component component : AdventureComponentSplitter.split(Component.newline(), parse.replace(placeholders, PlaceholderContext.create()).asComponent())) {
                         sender.sendMessage(component);
                     }
@@ -144,7 +144,7 @@ public class BlixxPlugin extends JavaPlugin {
             final String value = stringStringEntry.getValue();
             if (value.startsWith("#")) {
                 final String substring = value.substring(1);
-                result.add(BlixxPlaceholder.literal(key, this.blixx.parse(substring)));
+                result.add(BlixxPlaceholder.literal(key, this.blixx.parseComponent(substring)));
                 continue;
             }
 

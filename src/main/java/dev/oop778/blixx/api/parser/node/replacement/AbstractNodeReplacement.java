@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public abstract class AbstractNodeReplacement {
     protected final BlixxNodeImpl rootNode;
-    protected final List<? extends BlixxPlaceholder<?>> placeholders;
+    protected final Iterable<? extends BlixxPlaceholder<?>> placeholders;
     protected final PlaceholderContext context;
 
     public abstract void work();

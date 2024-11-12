@@ -77,13 +77,13 @@ public class MiniMessageBench {
                 <italic>End of the benchmark text with a final placeholder <placeholder_10>.</italic>
                 """;
 
-        this.preparsedWithKeys = this.blixxWithKeys.parse(this.complexInput, PlaceholderContext.create());
-        this.preparsedInMemoryIndex = this.blixxInMemoryIndex.parse(this.complexInput, PlaceholderContext.create());
+        this.preparsedWithKeys = this.blixxWithKeys.parseComponent(this.complexInput, PlaceholderContext.create());
+        this.preparsedInMemoryIndex = this.blixxInMemoryIndex.parseComponent(this.complexInput, PlaceholderContext.create());
     }
 
     @Benchmark
     public void blixxWithKeysParse() {
-        this.blixxWithKeys.parse(this.complexInput, PlaceholderContext.create());
+        this.blixxWithKeys.parseComponent(this.complexInput, PlaceholderContext.create());
     }
 
     @Benchmark
@@ -106,7 +106,7 @@ public class MiniMessageBench {
 
     @Benchmark
     public void blixxWithMemoryIndexParse() {
-        this.blixxInMemoryIndex.parse(this.complexInput, PlaceholderContext.create());
+        this.blixxInMemoryIndex.parseComponent(this.complexInput, PlaceholderContext.create());
     }
 
     @Benchmark
