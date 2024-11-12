@@ -6,6 +6,8 @@ import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 import dev.oop778.blixx.api.replacer.immutable.Replacer;
 import dev.oop778.blixx.api.tag.BlixxTags;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 
@@ -17,7 +19,7 @@ import java.util.Map;
 public class Test {
     private static final Blixx BLIXX = Blixx.builder()
             .withStandardParserConfig((configurator) -> configurator
-                    .withTags(BlixxTags.DEFAULT_TAGS)
+                    .withTags(BlixxTags.STANDARD)
                     .withPlaceholderFormat('%', '%')
                     .withPlaceholderFormat('{', '}')
                     .withPlaceholderFormat('<', '>')
@@ -64,6 +66,14 @@ public class Test {
 
         final Replacer replacer = Replacer.create(BlixxPlaceholder.literal("hello", 1));
         final BlixxComponent components = BLIXX.parseComponent("<red><bold>Hello <hello>");
+
+        BlixxPlaceholder.builder()
+                .contextual()
+                .withExact(Audience.class)
+                .literal()
+                .withKey("display_name")
+                .withContextSupplying((audience) -> audience.get(Identity.DISPLAY_NAME).get())
+                .build();
 
         final Component complete = replacer.accept(components)
                 .context(PlaceholderContext.createWithInheritance(BLIXX))

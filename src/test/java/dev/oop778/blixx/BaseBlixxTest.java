@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class BaseBlixxTest {
     protected static final Blixx BLIXX = Blixx.builder()
             .withStandardParserConfig((configurator) -> configurator
-                    .withTags(BlixxTags.DEFAULT_TAGS)
+                    .withTags(BlixxTags.STANDARD)
                     .withPlaceholderFormat('%', '%')
                     .withPlaceholderFormat('{', '}')
                     .withPlaceholderFormat('<', '>')

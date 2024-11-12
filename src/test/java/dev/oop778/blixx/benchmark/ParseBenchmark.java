@@ -30,7 +30,7 @@ public class ParseBenchmark {
     public static void main(String[] args) {
         final Blixx blixx = Blixx.builder()
                 .withStandardParserConfig((configurator) -> configurator
-                        .withTags(BlixxTags.DEFAULT_TAGS)
+                        .withTags(BlixxTags.STANDARD)
                         .withPlaceholderFormat('%', '%')
                         .withPlaceholderFormat('{', '}'))
                 .withStandardPlaceholderConfig()

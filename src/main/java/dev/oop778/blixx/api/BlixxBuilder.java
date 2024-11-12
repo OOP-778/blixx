@@ -91,7 +91,7 @@ public interface BlixxBuilder {
 
         @Override
         public ParserConfigurator<T> withStandardTags() {
-            return this.withTags(BlixxTags.DEFAULT_TAGS);
+            return this.withTags(BlixxTags.STANDARD);
         }
 
         @Override

@@ -1,7 +1,7 @@
 package dev.oop778.blixx.api.replacer.mutable;
 
 import dev.oop778.blixx.api.replacer.PlaceholderHolder;
-import dev.oop778.blixx.api.replacer.ReplacerAcceptable;
+import dev.oop778.blixx.api.replacer.ReplaceActionCaller;
 import dev.oop778.blixx.api.replacer.immutable.Replacer;
 import org.jetbrains.annotations.CheckReturnValue;
 
@@ -10,7 +10,7 @@ import org.jetbrains.annotations.CheckReturnValue;
  * and context builders that allow custom logic to dynamically replace data in text
  * based on various contexts.
  */
-public interface MutableReplacer extends ReplacerAcceptable, PlaceholderHolder<MutableReplacer> {
+public interface MutableReplacer extends ReplaceActionCaller, PlaceholderHolder<MutableReplacer> {
 
     static MutableReplacer create() {
         return new MutableReplacerImpl();

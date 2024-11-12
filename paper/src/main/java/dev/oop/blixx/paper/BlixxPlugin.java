@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 public class BlixxPlugin extends JavaPlugin {
     private final Blixx blixx = Blixx.builder()
             .withStandardParserConfig((configurator) -> configurator
-                    .withTags(BlixxTags.DEFAULT_TAGS)
+                    .withTags(BlixxTags.STANDARD)
                     .withPlaceholderFormat('%', '%')
                     .withPlaceholderFormat('{', '}')
                     .withPlaceholderFormat('<', '>')
@@ -43,9 +43,8 @@ public class BlixxPlugin extends JavaPlugin {
                                 return "<" + context.getHexColor(matcher.group(1), Integer.parseInt(matcher.group(2))) + ">";
                             })
                             .build()))
-            .withStandardPlaceholderConfig()
+            .withStandardPlaceholderConfig((configurator) -> configurator.withDefaultContext(placeholder -> placeholder.withDefaultInheritanceContext(new ColorSchemeImpl())))
             .build();
-    private static final ColorSchemeImpl colorScheme = new ColorSchemeImpl();
 
     @Override
     public void onEnable() {
@@ -71,7 +70,7 @@ public class BlixxPlugin extends JavaPlugin {
                         placeholders.put(placeholder, value);
                     }
 
-                    final BlixxComponent parse = this.blixx.parseComponent(input.toString(), PlaceholderContext.create(colorScheme));
+                    final BlixxComponent parse = this.blixx.parseComponent(input.toString());
                     final BlixxComponent blixxComponent = parse.replace(this.parseBlixxPlaceholders(placeholders), null);
 
                     for (final Component component : AdventureComponentSplitter.split(Component.newline(),blixxComponent.asComponent())) {

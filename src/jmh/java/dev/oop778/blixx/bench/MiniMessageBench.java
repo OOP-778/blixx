@@ -31,7 +31,7 @@ public class MiniMessageBench {
         // Initialize Blixx parser
         this.blixxWithKeys = Blixx.builder()
                 .withStandardParserConfig((configurator) -> configurator
-                        .withTags(BlixxTags.DEFAULT_TAGS)
+                        .withTags(BlixxTags.STANDARD)
                         .withPlaceholderFormat('<', '>')
                         .useKeyBasedPlaceholderIndexing()
                 )
@@ -40,7 +40,7 @@ public class MiniMessageBench {
 
         this.blixxInMemoryIndex = Blixx.builder()
                 .withStandardParserConfig((configurator) -> configurator
-                        .withTags(BlixxTags.DEFAULT_TAGS)
+                        .withTags(BlixxTags.STANDARD)
                         .withPlaceholderFormat('<', '>')
                 )
                 .withStandardPlaceholderConfig()

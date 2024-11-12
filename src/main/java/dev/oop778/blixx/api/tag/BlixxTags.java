@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public interface BlixxTags {
-    Map<String, BlixxTag<?>> DEFAULT_TAGS = new HashMap<String, BlixxTag<?>>() {{
+    Map<String, BlixxTag<?>> STANDARD = new HashMap<String, BlixxTag<?>>() {{
         this.put("color", ColorTag.INSTANCE);
         this.put("decorate", DecorationTag.INSTANCE);
         this.put("reset", ResetTag.INSTANCE);
