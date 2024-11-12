@@ -3,7 +3,7 @@ package dev.oop778.blixx.api.tag;
 import dev.oop778.blixx.api.Blixx;
 import dev.oop778.blixx.api.parser.ParsingContext;
 import dev.oop778.blixx.api.parser.node.BlixxNode;
-import dev.oop778.blixx.util.FastComponentBuilder;
+import dev.oop778.blixx.util.adventure.FastComponentBuilder;
 import dev.oop778.blixx.util.collection.ObjectArray;
 import lombok.*;
 import lombok.experimental.SuperBuilder;

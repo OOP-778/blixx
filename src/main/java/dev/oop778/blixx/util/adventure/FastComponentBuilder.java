@@ -1,4 +1,4 @@
-package dev.oop778.blixx.util;
+package dev.oop778.blixx.util.adventure;
 
 import lombok.Getter;
 import lombok.Setter;

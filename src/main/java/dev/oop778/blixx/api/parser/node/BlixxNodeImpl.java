@@ -7,9 +7,9 @@ import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 import dev.oop778.blixx.api.tag.BlixxProcessor;
 import dev.oop778.blixx.api.tag.BlixxTag;
-import dev.oop778.blixx.util.FastComponentBuilder;
+import dev.oop778.blixx.util.adventure.FastComponentBuilder;
 import dev.oop778.blixx.util.collection.ObjectArray;
-import dev.oop778.blixx.util.StyleBuilder;
+import dev.oop778.blixx.util.adventure.StyleBuilder;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
@@ -303,7 +303,7 @@ public abstract class BlixxNodeImpl implements BlixxNode {
         this.next = from.next;
     }
 
-    private void setNodeAsTreeEnd(@Nullable BlixxNodeImpl node) {
+    public void setNodeAsTreeEnd(@Nullable BlixxNodeImpl node) {
         if (node == null) {
             return;
         }
@@ -317,7 +317,7 @@ public abstract class BlixxNodeImpl implements BlixxNode {
         currentNode.next = node;
     }
 
-    private BlixxNodeImpl findTreeEnd() {
+    public BlixxNodeImpl findTreeEnd() {
         BlixxNodeImpl currentNode = this;
         while (currentNode.next != null) {
             currentNode = currentNode.next;

@@ -1,11 +1,10 @@
 package dev.oop778.blixx.tag.decoration;
 
-import dev.oop778.blixx.api.parser.node.BlixxNode;
 import dev.oop778.blixx.api.parser.node.BlixxNodeImpl;
 import dev.oop778.blixx.api.tag.BlixxProcessor;
 import dev.oop778.blixx.api.tag.BlixxTag;
 import dev.oop778.blixx.text.argument.BaseArgumentQueue;
-import dev.oop778.blixx.util.FastComponentBuilder;
+import dev.oop778.blixx.util.adventure.FastComponentBuilder;
 import lombok.Data;
 import lombok.NonNull;
 import net.kyori.adventure.text.format.Style;

@@ -7,6 +7,7 @@ import dev.oop778.blixx.api.component.ComponentDecoration;
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 import dev.oop778.blixx.api.tag.BlixxTags;
+import dev.oop778.blixx.util.adventure.AdventureComponentSplitter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
@@ -73,11 +74,13 @@ public class BlixxPlugin extends JavaPlugin {
                     final BlixxComponent parse = this.blixx.parse(input.toString(), PlaceholderContext.create(colorScheme));
                     final BlixxComponent blixxComponent = parse.replace(this.parseBlixxPlaceholders(placeholders), null);
 
-                    final Component component = blixxComponent.asComponent();
-                    sender.sendMessage(component);
+                    for (final Component component : AdventureComponentSplitter.split(Component.newline(),blixxComponent.asComponent())) {
+                        sender.sendMessage(component);
+                    }
 
-                    final Component miniMessageComponent = MiniMessage.miniMessage().deserialize(input.toString(), this.parseMiniMessagePlaceholders(placeholders));
-                    sender.sendMessage(miniMessageComponent);
+                    for (final Component component : AdventureComponentSplitter.split(Component.newline(), MiniMessage.miniMessage().deserialize(input.toString(), this.parseMiniMessagePlaceholders(placeholders)))) {
+                        sender.sendMessage(component);
+                    }
                 })
         );
 
@@ -127,7 +130,9 @@ public class BlixxPlugin extends JavaPlugin {
                     );
 
                     final BlixxComponent parse = this.blixx.parse(input, PlaceholderContext.create(colorScheme));
-                    sender.sendMessage(parse.replace(placeholders, null).asComponent());
+                    for (final Component component : AdventureComponentSplitter.split(Component.newline(), parse.replace(placeholders, PlaceholderContext.create()).asComponent())) {
+                        sender.sendMessage(component);
+                    }
                 })
         );
     }
