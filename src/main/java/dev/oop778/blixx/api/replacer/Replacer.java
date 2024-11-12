@@ -10,7 +10,7 @@ import org.jetbrains.annotations.CheckReturnValue;
  * and context builders that allow custom logic to dynamically replace data in text
  * based on various contexts.
  */
-public interface Replacer {
+public interface Replacer extends ReplacerAcceptable {
     /**
      * Registers a new placeholder to the Replacer.
      *
