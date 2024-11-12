@@ -9,13 +9,10 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public interface ParserConfig {
-    boolean supportsLegacyColorCodes();
-    boolean supportsHexColorCodes();
     Map<String, BlixxTag<?>> tags();
     Map<BlixxTag<?>, List<String>> tagNames();
     char tagOpen();
     char tagClose();
-    boolean strictMode();
     boolean useKeyBasedIndexing();
     List<Pair<Character, Character>> placeholderFormats();
     List<Pattern> placeholderPatterns();

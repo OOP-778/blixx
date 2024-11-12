@@ -19,9 +19,6 @@ public class ParserConfigImpl implements ParserConfig {
     private final List<Pair<Character, Character>> placeholderFormats;
     private final char tagOpen;
     private final char tagClose;
-    private final boolean supportsLegacyColorCodes;
-    private final boolean supportsHexColorCodes;
-    private final boolean strictMode;
     private final List<Pattern> placeholderPatterns;
     private final List<Character> placeholderCharacters;
     private final Iterable<BlixxTag.Pattern<?>> patternTags;
@@ -29,15 +26,12 @@ public class ParserConfigImpl implements ParserConfig {
     private final Map<BlixxTag<?>, List<String>> tagNames;
     private final boolean useKeyBasedIndexing;
 
-    public ParserConfigImpl(Map<String, BlixxTag<?>> tags, List<Pair<Character, Character>> placeholderFormats, List<BlixxPlaceholder<String>> parsePlaceholders, char tagOpen, char tagClose, boolean supportsLegacyColorCodes, boolean supportsHexColorCodes, boolean strictMode, boolean useKeyBasedIndexing) {
+    public ParserConfigImpl(Map<String, BlixxTag<?>> tags, List<Pair<Character, Character>> placeholderFormats, List<BlixxPlaceholder<String>> parsePlaceholders, char tagOpen, char tagClose, boolean useKeyBasedIndexing) {
         this.tags = tags;
         this.placeholderFormats = placeholderFormats;
         this.parsePlaceholders = parsePlaceholders;
         this.tagOpen = tagOpen;
         this.tagClose = tagClose;
-        this.supportsLegacyColorCodes = supportsLegacyColorCodes;
-        this.supportsHexColorCodes = supportsHexColorCodes;
-        this.strictMode = strictMode;
         this.useKeyBasedIndexing = useKeyBasedIndexing;
         this.placeholderPatterns = this.initPatterns();
         this.placeholderCharacters = new ArrayList<>(this.placeholderFormats.size() * 2);

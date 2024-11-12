@@ -27,7 +27,7 @@ public class ParserImpl {
     public ParserImpl(Blixx blixx) {
         this.blixx = blixx;
         this.parserConfig = blixx.parserConfig();
-        this.context = blixx.placeholderConfig().defaultContext().context();
+        this.context = blixx.placeholderConfig().defaultContext();
     }
 
     public BlixxNodeImpl parse(String text, PlaceholderContext context) {

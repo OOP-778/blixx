@@ -1,19 +1,10 @@
 package dev.oop778.blixx.api.placeholder;
 
+import dev.oop778.blixx.api.formatter.BlixxFormatters;
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 
-import java.util.Map;
-import java.util.function.Function;
-
 public interface PlaceholderConfig {
-    FormatterConfig formatter();
-    DefaultContextConfig defaultContext();
+    BlixxFormatters defaultFormatters();
 
-    interface FormatterConfig {
-        Map<Class<?>, Function<?, Object>> formatters();
-    }
-
-    interface DefaultContextConfig {
-        PlaceholderContext context();
-    }
+    PlaceholderContext defaultContext();
 }
