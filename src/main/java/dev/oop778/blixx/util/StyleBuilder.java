@@ -21,6 +21,7 @@ import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
 
+// A LOT less memory consumption than using adventure's
 public class StyleBuilder implements Style.Builder {
     private Map<TextDecoration, TextDecoration.State> decorations;
     private @Nullable Key font;

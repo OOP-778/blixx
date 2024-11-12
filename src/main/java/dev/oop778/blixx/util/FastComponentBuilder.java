@@ -15,6 +15,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Supplier;
 
+// A LOT less memory consumption than using adventure's text component builder
 @Getter
 @Setter
 public class FastComponentBuilder {
