@@ -21,6 +21,7 @@ public class BlixxPlaceholderImpl {
     public static class Literal<T> implements BlixxPlaceholder.Literal<T> {
         private final List<String> keys;
         private final Supplier<T> supplier;
+        private final boolean constant;
 
         @Override
         public String key() {
@@ -35,6 +36,11 @@ public class BlixxPlaceholderImpl {
         @Override
         public T get(@UnknownNullability PlaceholderContext context) {
             return this.supplier.get();
+        }
+
+        @Override
+        public String toString() {
+            return String.format("Literal %s%s", key(), constant ? String.format("=%s", supplier.get()) : "=dynamic");
         }
     }
 

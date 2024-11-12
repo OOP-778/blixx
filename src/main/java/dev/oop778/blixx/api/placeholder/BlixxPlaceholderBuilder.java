@@ -260,7 +260,7 @@ public interface BlixxPlaceholderBuilder {
             }
 
             if (!this.keys.isEmpty()) {
-                return new BlixxPlaceholderImpl.Literal<>(new ArrayList<>(this.keys), this.valueSupplier);
+                return new BlixxPlaceholderImpl.Literal<>(new ArrayList<>(this.keys), this.valueSupplier, this.constant);
             }
 
             throw new IllegalStateException("Idk");
