@@ -1,42 +1,60 @@
 package dev.oop778.blixx.api.placeholder.context;
 
+import dev.oop778.blixx.util.inheritance.InheritanceRegistry;
 import lombok.NonNull;
 import org.jetbrains.annotations.ApiStatus;
 
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
-import java.util.IdentityHashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @ApiStatus.Internal
 @SuppressWarnings("unchecked")
 public class PlaceholderContextImpl implements PlaceholderContext {
-    private final Map<Class<?>, Reference<?>> registered = new IdentityHashMap<>();
+    private final InheritanceRegistry<Object> registry;
+
+    public PlaceholderContextImpl() {
+        this(2);
+    }
+
+    public PlaceholderContextImpl(InheritanceRegistry<Object> registry) {
+        this.registry = registry;
+    }
+
+    public PlaceholderContextImpl(int size) {
+        this.registry = new InheritanceRegistry<>(() -> new IdentityHashMap<>(size));
+    }
 
     @Override
     public <T> Optional<T> find(Class<T> clazz) {
-        return Optional
-                .ofNullable((T) this.registered.get(clazz))
-                .map(ref -> (T) ((Reference<?>) ref).get());
+        return Optional.ofNullable(this.registry.get(clazz));
     }
 
-    public <T> void register(@NonNull T object) {
-        this.registered.put(object.getClass(), new WeakReference<>(object));
+    @Override
+    public <T> List<T> findAll(Class<T> clazz) {
+        return Collections.emptyList();
     }
 
-    public <T> void registerForHierarchy(@NonNull T object) {
-        Class<?> clazz = object.getClass();
-        final WeakReference<T> reference = new WeakReference<>(object);
+    @Override
+    public PlaceholderContext withExact(Object object) {
+        return this.createChildren().register(object);
+    }
 
-        while (clazz != null && clazz != Object.class) {
-            for (final Class<?> iface : object.getClass().getInterfaces()) {
-                this.registered.put(iface, reference);
-            }
+    @Override
+    public PlaceholderContext withInheritance(Object object) {
+        return this.createChildren().registerForHierarchy(object);
+    }
 
-            this.registered.put(clazz, reference);
-            clazz = clazz.getSuperclass();
-        }
+    public <T> PlaceholderContextImpl register(@NonNull T object) {
+        this.registry.registerExact(object.getClass(), object);
+        return this;
+    }
+
+    public <T> PlaceholderContextImpl registerForHierarchy(@NonNull T object) {
+        this.registry.registerWithInheritance(object.getClass(), object);
+        return this;
+    }
+
+    private PlaceholderContextImpl createChildren() {
+        return new PlaceholderContextImpl(this.registry.createChildren());
     }
 
     protected static class Composed implements PlaceholderContext {
@@ -60,6 +78,44 @@ public class PlaceholderContextImpl implements PlaceholderContext {
             }
 
             return Optional.empty();
+        }
+
+        @Override
+        public <T> List<T> findAll(Class<T> clazz) {
+            final List<T> list = new ArrayList<>();
+            final Set<T> visited = Collections.newSetFromMap(new IdentityHashMap<>());
+
+            final Queue<PlaceholderContext> queue = new LinkedList<>();
+            queue.add(this);
+
+            while (!queue.isEmpty()) {
+                final PlaceholderContext poll = queue.poll();
+                if (poll instanceof Composed) {
+                    queue.addAll(Arrays.asList(((Composed) poll).contexts));
+                    continue;
+                }
+
+                final Optional<T> optional = poll.find(clazz);
+                if (optional.isPresent()) {
+                    final T t = optional.get();
+                    if (visited.add(t)) {
+                        list.add(t);
+                    }
+                }
+
+            }
+
+            return list;
+        }
+
+        @Override
+        public PlaceholderContext withExact(Object object) {
+            return PlaceholderContext.compose(PlaceholderContext.create(object), this);
+        }
+
+        @Override
+        public PlaceholderContext withInheritance(Object object) {
+            return PlaceholderContext.compose(PlaceholderContext.createWithInheritance(object), this);
         }
     }
 }
