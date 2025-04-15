@@ -1,0 +1,11 @@
+{color}❙ <white>Cooldown: {color}{cooldown}
+
+<< {color} (<red>)
+1st) ->
+    0) <red>|
+    1) <white>Cooldown: {color}{cooldown}
+
+2st ->
+    1) <red>|
+    2) <white>Cooldown:
+    3) <red>{cooldown}

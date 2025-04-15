@@ -34,6 +34,6 @@ public class BlixxFormattersImpl implements BlixxFormatters {
     }
 
     protected void registerInheritance(Class<?> type, BlixxFormatter<?, ?> formatter) {
-        this.registerInheritance(type, formatter);
+        this.registry.registerWithInheritance(type, formatter);
     }
 }

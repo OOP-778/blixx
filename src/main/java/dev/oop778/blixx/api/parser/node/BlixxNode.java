@@ -5,7 +5,7 @@ import dev.oop778.blixx.api.tag.BlixxTag;
 import net.kyori.adventure.text.TextComponent;
 
 public interface BlixxNode extends Indexable.WithNodeContent {
-    BlixxNodeImpl copy();
+    BlixxNode copy();
 
     @Override
     default BlixxNode getNode() {
@@ -20,7 +20,9 @@ public interface BlixxNode extends Indexable.WithNodeContent {
 
     BlixxNodeSpec getSpec();
 
-    BlixxNodeImpl getNext();
+    BlixxNode getNext();
+
+    BlixxNode getPrevious();
 
     String getContent();
 

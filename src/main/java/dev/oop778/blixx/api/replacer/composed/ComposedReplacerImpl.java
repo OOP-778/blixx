@@ -33,8 +33,7 @@ public class ComposedReplacerImpl implements ComposedReplacer {
 
     @Override
     public ComposedReplacer withPlaceholder(@NonNull Where where, BlixxPlaceholder<?> placeholder) {
-        Replacer.create();
-        return ComposedReplacer.create();
+        throw new UnsupportedOperationException("Cannot add placeholder to composed replacer");
     }
 
     @Override

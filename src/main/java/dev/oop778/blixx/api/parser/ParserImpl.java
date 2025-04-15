@@ -4,7 +4,6 @@ import dev.oop778.blixx.api.Blixx;
 import dev.oop778.blixx.api.parser.config.ParserConfig;
 import dev.oop778.blixx.api.parser.node.BlixxNodeImpl;
 import dev.oop778.blixx.api.parser.node.BlixxNodeSpec;
-import dev.oop778.blixx.api.parser.node.identityspec.BlixxIdentitySpec;
 import dev.oop778.blixx.api.parser.node.keyedspec.BlixxKeyedNodeSpec;
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
@@ -91,7 +90,7 @@ public class ParserImpl {
         public ParsingContext(String input, String originalInput) {
             this.charQueue = new ArrayCharacterQueue(input);
             this.parserKey = new Object();
-            this.spec = ParserImpl.this.parserConfig.useKeyBasedIndexing() ? new BlixxKeyedNodeSpec(ParserImpl.this.blixx, originalInput, this.parserKey) : new BlixxIdentitySpec(ParserImpl.this.blixx);
+            this.spec = new BlixxKeyedNodeSpec(ParserImpl.this.blixx, originalInput, this.parserKey);
             this.rootNode = (BlixxNodeImpl) this.spec.createNode();
             this.currentNode = this.rootNode;
             this.context = BlixxProcessor.ParserContext.builder().blixx(ParserImpl.this.blixx).parsingContext(this).build();
@@ -173,7 +172,7 @@ public class ParserImpl {
         private boolean processNewTag(BlixxTag.WithDefinedData<?> parsedTag) {
             if (this.builder.length() != 0) {
                 final BlixxProcessor.Context tagContext = BlixxProcessor.Context.builder().blixx(ParserImpl.this.blixx).build();
-                this.moveOntoNewNode(tag -> parsedTag.canCoexist(tagContext, tag));
+                this.moveOntoNewNode(parsedTag::canCoexist);
             }
 
             final BlixxProcessor.Context build = BlixxProcessor.Context.builder()

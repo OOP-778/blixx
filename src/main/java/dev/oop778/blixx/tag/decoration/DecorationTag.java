@@ -29,7 +29,7 @@ public class DecorationTag implements BlixxTag<TextDecoration> {
 
         @Override
         public void decorate(@NonNull ComponentContext context) {
-            context.getStyleBuilder().decorate((TextDecoration) context.getData());
+            context.getStyleBuilder().decorate(context.getData());
         }
     }
 }

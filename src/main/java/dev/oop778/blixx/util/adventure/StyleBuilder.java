@@ -14,15 +14,12 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Objects.requireNonNull;
 
 // A LOT less memory consumption than using adventure's
-public class StyleBuilder implements Style.Builder {
+public class StyleBuilder {
     private Map<TextDecoration, TextDecoration.State> decorations;
     private @Nullable Key font;
     private @Nullable TextColor color;
@@ -32,13 +29,14 @@ public class StyleBuilder implements Style.Builder {
     private static final Map<TextDecoration, TextDecoration.State> EMPTY_DECORATIONS = Collections.emptyMap();
 
     private static final MethodHandle CREATE_STYLE_HANDLE;
-
+    private static final int STYLE_CONSTRUCTOR_ARGS_COUNT;
     static {
         try {
             final Class<?> styleClazz = Class.forName("net.kyori.adventure.text.format.StyleImpl");
             final Constructor<?> declaredConstructor = styleClazz.getDeclaredConstructors()[0];
             declaredConstructor.setAccessible(true);
 
+            STYLE_CONSTRUCTOR_ARGS_COUNT = declaredConstructor.getParameterCount();
             CREATE_STYLE_HANDLE = MethodHandles.publicLookup().unreflectConstructor(declaredConstructor);
         } catch (Throwable throwable) {
             throw new RuntimeException(throwable);
@@ -49,30 +47,37 @@ public class StyleBuilder implements Style.Builder {
         this.decorations = EMPTY_DECORATIONS;
     }
 
+    public StyleBuilder(Style defaultStyle) {
+        if (defaultStyle == null) {
+            this.decorations = EMPTY_DECORATIONS;
+        } else {
+            this.decorations = new EnumMap<>(defaultStyle.decorations());
+        }
+    }
+
     static boolean nothingToMerge(final @NotNull Style mergeFrom, final Style.Merge.@NotNull Strategy strategy, final @NotNull Set<Style.Merge> merges) {
         if (strategy == Style.Merge.Strategy.NEVER) {
             return true;
         }
+
         if (mergeFrom.isEmpty()) {
             return true;
         }
+
         return merges.isEmpty();
     }
 
-    @Override
-    public Style.@NotNull Builder font(@Nullable Key font) {
+    public StyleBuilder font(@Nullable Key font) {
         this.font = font;
         return this;
     }
 
-    @Override
-    public Style.@NotNull Builder color(@Nullable TextColor color) {
+    public StyleBuilder color(@Nullable TextColor color) {
         this.color = color;
         return this;
     }
 
-    @Override
-    public Style.@NotNull Builder colorIfAbsent(@Nullable TextColor color) {
+    public StyleBuilder colorIfAbsent(@Nullable TextColor color) {
         if (this.color == null) {
             this.color = color;
         }
@@ -80,8 +85,7 @@ public class StyleBuilder implements Style.Builder {
         return this;
     }
 
-    @Override
-    public Style.@NotNull Builder decoration(@NotNull TextDecoration decoration, TextDecoration.@NotNull State state) {
+    public StyleBuilder decoration(@NotNull TextDecoration decoration, TextDecoration.@NotNull State state) {
         if (this.decorations == EMPTY_DECORATIONS) {
             this.decorations = new EnumMap<>(TextDecoration.class);
         }
@@ -90,8 +94,7 @@ public class StyleBuilder implements Style.Builder {
         return this;
     }
 
-    @Override
-    public Style.@NotNull Builder decorationIfAbsent(@NotNull TextDecoration decoration, TextDecoration.@NotNull State state) {
+    public StyleBuilder decorationIfAbsent(@NotNull TextDecoration decoration, TextDecoration.@NotNull State state) {
         if (this.decorations == EMPTY_DECORATIONS) {
             this.decorations = new EnumMap<>(TextDecoration.class);
         }
@@ -100,26 +103,22 @@ public class StyleBuilder implements Style.Builder {
         return this;
     }
 
-    @Override
-    public Style.@NotNull Builder clickEvent(@Nullable ClickEvent event) {
+    public StyleBuilder clickEvent(@Nullable ClickEvent event) {
         this.clickEvent = event;
         return this;
     }
 
-    @Override
-    public Style.@NotNull Builder hoverEvent(@Nullable HoverEventSource<?> source) {
+    public StyleBuilder hoverEvent(@Nullable HoverEventSource<?> source) {
         this.hoverEvent = HoverEventSource.unbox(source);
         return this;
     }
 
-    @Override
-    public Style.@NotNull Builder insertion(@Nullable String insertion) {
+    public StyleBuilder insertion(@Nullable String insertion) {
         this.insertion = insertion;
         return this;
     }
 
-    @Override
-    public @NotNull Style.Builder merge(final @NotNull Style that, final Style.Merge.@NotNull Strategy strategy, final @NotNull Set<Style.Merge> merges) {
+    public @NotNull StyleBuilder merge(final @NotNull Style that, final Style.Merge.@NotNull Strategy strategy, final @NotNull Set<Style.Merge> merges) {
         requireNonNull(that, "style");
         requireNonNull(strategy, "strategy");
         requireNonNull(merges, "merges");
@@ -187,15 +186,51 @@ public class StyleBuilder implements Style.Builder {
         return this;
     }
 
-    @Override
     @SneakyThrows
     public @NotNull Style build() {
         if (this.isEmpty()) {
             return Style.empty();
         }
 
+        if (STYLE_CONSTRUCTOR_ARGS_COUNT == 6) {
+            return (Style) CREATE_STYLE_HANDLE.invoke(
+                    this.font,
+                    this.color,
+                    this.decorations,
+                    this.clickEvent,
+                    this.hoverEvent,
+                    this.insertion
+            );
+        }
 
-        return (Style) CREATE_STYLE_HANDLE.invoke(this.font, this.color, this.decorations, this.clickEvent, this.hoverEvent, this.insertion);
+        if (STYLE_CONSTRUCTOR_ARGS_COUNT == 7) {
+            return (Style) CREATE_STYLE_HANDLE.invoke(
+                    this.font,
+                    this.color,
+                    null,
+                    this.decorations,
+                    this.clickEvent,
+                    this.hoverEvent,
+                    this.insertion
+            );
+        }
+
+        return (Style) CREATE_STYLE_HANDLE.invoke(
+                this.font,
+                this.color,
+                this.decorations.getOrDefault(TextDecoration.OBFUSCATED, TextDecoration.State.NOT_SET),
+                this.decorations.getOrDefault(TextDecoration.BOLD, TextDecoration.State.NOT_SET),
+                this.decorations.getOrDefault(TextDecoration.STRIKETHROUGH, TextDecoration.State.NOT_SET),
+                this.decorations.getOrDefault(TextDecoration.UNDERLINED, TextDecoration.State.NOT_SET),
+                this.decorations.getOrDefault(TextDecoration.ITALIC, TextDecoration.State.NOT_SET),
+                this.clickEvent,
+                this.hoverEvent,
+                this.insertion
+        );
+    }
+
+    public void decorate(TextDecoration decoration) {
+        this.decoration(decoration, TextDecoration.State.TRUE);
     }
 
     private boolean isEmpty() {

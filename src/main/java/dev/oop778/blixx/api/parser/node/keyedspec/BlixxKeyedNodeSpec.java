@@ -6,6 +6,7 @@ import dev.oop778.blixx.api.parser.indexable.IndexableKey;
 import dev.oop778.blixx.api.parser.node.BlixxNode;
 import dev.oop778.blixx.api.parser.node.BlixxNodeImpl;
 import dev.oop778.blixx.api.parser.node.BlixxNodeSpec;
+import dev.oop778.blixx.api.parser.node.IndexedPlaceholder;
 import dev.oop778.blixx.api.tag.BlixxTag;
 import dev.oop778.blixx.util.Pair;
 import lombok.Getter;
@@ -29,30 +30,6 @@ public class BlixxKeyedNodeSpec implements BlixxNodeSpec {
     private int indexableIndexCounter;
     private static final Pattern PLACEHOLDER_INSIDE_PATTERN = Pattern.compile("[a-zA-Z_0-9]+");
 
-    public static boolean findAnyPlaceholders(Indexable indexable, List<Pair<Character, Character>> placeholderFormats) {
-        final String content;
-        if (indexable instanceof Indexable.WithStringContent) {
-            content = ((Indexable.WithStringContent) indexable).getContent();
-        } else {
-            content = ((Indexable.WithNodeContent) indexable).getNode().getContent();
-        }
-
-        if (content.isEmpty()) {
-            return false;
-        }
-
-        for (final Pair<Character, Character> placeholderFormat : placeholderFormats) {
-            final char start = placeholderFormat.getLeft();
-            final char end = placeholderFormat.getRight();
-
-            if (content.indexOf(start) != -1 && content.indexOf(end) != -1) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public static void findNewPlaceholders(Indexable indexable, List<Pair<Character, Character>> placeholderFormats, BiConsumer<String, Indexable> collector) {
         final String content;
         if (indexable instanceof Indexable.WithStringContent) {
@@ -66,23 +43,23 @@ public class BlixxKeyedNodeSpec implements BlixxNodeSpec {
         }
 
         for (final Pair<Character, Character> placeholderFormat : placeholderFormats) {
-            final char start = placeholderFormat.getLeft();
-            final char end = placeholderFormat.getRight();
+            final char startChar = placeholderFormat.getLeft();
+            final char endChar = placeholderFormat.getRight();
 
             int pos = 0;
             while (pos < content.length()) {
-                final int startIndex = content.indexOf(start, pos);
+                final int startIndex = content.indexOf(startChar, pos);
                 if (startIndex == -1) {
                     break;
                 }
 
-                final int endIndex = content.indexOf(end, startIndex + 1);
+                final int endIndex = content.indexOf(endChar, startIndex + 1);
                 if (endIndex == -1) {
                     break;
                 }
 
                 final String fullPlaceholder = content.substring(startIndex, endIndex + 1);
-                if (!fullPlaceholder.isEmpty() && PLACEHOLDER_INSIDE_PATTERN.matcher(fullPlaceholder.substring(1, fullPlaceholder.length() - 1)).matches()) {
+                if (!fullPlaceholder.isEmpty()) {
                     collector.accept(fullPlaceholder, indexable);
                 }
 
@@ -155,11 +132,7 @@ public class BlixxKeyedNodeSpec implements BlixxNodeSpec {
         }
     }
 
-    public int getNextIndex() {
-        return this.indexableIndexCounter++;
-    }
-
-    public void collectPlaceholders(BlixxNodeImpl node, Map<String, List<Indexable>> placeholders) {
+    public void collectPlaceholders(BlixxNodeImpl node, Map<String, IndexedPlaceholder> placeholders) {
         // Collect node placeholders itself
         this.collectNodePlaceholders(node, placeholders);
 
@@ -167,18 +140,19 @@ public class BlixxKeyedNodeSpec implements BlixxNodeSpec {
         this.collectTagPlaceholders(node, placeholders);
     }
 
-    private void collectNodePlaceholders(BlixxNodeImpl node, Map<String, List<Indexable>> placeholders) {
+    private void collectNodePlaceholders(BlixxNodeImpl node, Map<String, IndexedPlaceholder> placeholders) {
         final List<String> keys = this.indexableToPlaceholders.get(node.getKey());
         if (keys == null) {
             return;
         }
 
         for (final String key : keys) {
-            placeholders.computeIfAbsent(key, $ -> new ArrayList<>(2)).add(node);
+            final String placeholder = key.substring(1, key.length() - 1);
+            placeholders.computeIfAbsent(placeholder, $ -> new IndexedPlaceholder()).addIndexable(key, node);
         }
     }
 
-    private void collectTagPlaceholders(BlixxNodeImpl node, Map<String, List<Indexable>> placeholders) {
+    private void collectTagPlaceholders(BlixxNodeImpl node, Map<String, IndexedPlaceholder> placeholders) {
         final Iterable<BlixxTag.WithDefinedData<?>> tags = node.getTags();
         if (tags == null) {
             return;
@@ -196,8 +170,9 @@ public class BlixxKeyedNodeSpec implements BlixxNodeSpec {
 
             final List<String> strings = this.indexableToPlaceholders.get(((Indexable) definedData).getKey());
             if (strings != null) {
-                for (final String placeholder : strings) {
-                    placeholders.computeIfAbsent(placeholder, $ -> new ArrayList<>(2)).add((Indexable) definedData);
+                for (final String key : strings) {
+                    final String placeholder = key.substring(1, key.length() - 1);
+                    placeholders.computeIfAbsent(placeholder, $ -> new IndexedPlaceholder()).addIndexable(key, ((Indexable) definedData));
                 }
             }
         }

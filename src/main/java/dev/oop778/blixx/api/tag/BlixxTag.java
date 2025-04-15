@@ -27,7 +27,7 @@ public interface BlixxTag<DATA> {
         return thisTag.equals(otherTag);
     }
 
-    default boolean canCoexist(@NonNull BlixxProcessor.Context context, @NonNull BlixxTag<?> other) {
+    default boolean canCoexist(@NonNull BlixxTag<?> other) {
         return true;
     }
 
@@ -47,8 +47,8 @@ public interface BlixxTag<DATA> {
         }
 
         @Override
-        default boolean canCoexist(BlixxProcessor.@NonNull Context context, @NonNull BlixxTag<?> other) {
-            return this.getOriginalTag().canCoexist(context, other);
+        default boolean canCoexist(@NonNull BlixxTag<?> other) {
+            return this.getOriginalTag().canCoexist(other);
         }
 
         @Override

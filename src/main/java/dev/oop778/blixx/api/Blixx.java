@@ -20,6 +20,7 @@ public interface Blixx {
     }
 
     ParserConfig parserConfig();
+
     PlaceholderConfig placeholderConfig();
 
     BlixxComponent parseComponent(@NonNull String input, @Nullable PlaceholderContext context);
@@ -35,6 +36,6 @@ public interface Blixx {
     }
 
     class Helper {
-        private static final ThreadSafeLazyInit<Blixx> STANDARD_BLIXX = new ThreadSafeLazyInit<>(() -> builder().withStandardParserConfig().withStandardPlaceholderConfig().build());
+        private static final ThreadSafeLazyInit<Blixx> STANDARD_BLIXX = new ThreadSafeLazyInit<Blixx>(() -> builder().withStandardParserConfig().withStandardPlaceholderConfig().build());
     }
 }

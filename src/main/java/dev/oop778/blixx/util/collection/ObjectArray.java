@@ -35,12 +35,6 @@ public class ObjectArray<T> implements Iterable<T> {
         this.index = this.array.length;
     }
 
-    public ObjectArray(Stream<T> stream) {
-        this.array = stream.toArray(size -> (T[]) new Object[size]);
-        this.size = this.array.length;
-        this.index = this.array.length;
-    }
-
     @Override
     public @NotNull Iterator<T> iterator() {
         return new SafeIterator<>(new Iterator<T>() {

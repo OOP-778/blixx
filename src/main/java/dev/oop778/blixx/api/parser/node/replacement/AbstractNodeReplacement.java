@@ -6,72 +6,97 @@ import dev.oop778.blixx.api.component.ComponentDecoration;
 import dev.oop778.blixx.api.parser.indexable.Indexable;
 import dev.oop778.blixx.api.parser.node.BlixxNode;
 import dev.oop778.blixx.api.parser.node.BlixxNodeImpl;
+import dev.oop778.blixx.api.parser.node.IndexedPlaceholder;
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 import dev.oop778.blixx.api.tag.BlixxTag;
 import dev.oop778.blixx.util.collection.ObjectArray;
-import lombok.RequiredArgsConstructor;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@RequiredArgsConstructor
 public abstract class AbstractNodeReplacement {
     protected final BlixxNodeImpl rootNode;
     protected final Iterable<? extends BlixxPlaceholder<?>> placeholders;
     protected final PlaceholderContext context;
+    protected final Map<String, BlixxPlaceholder.Literal<?>> literalPlaceholders;
+    protected final List<BlixxPlaceholder.Pattern<?>> patternPlaceholders;
+
+    public AbstractNodeReplacement(BlixxNodeImpl rootNode, Iterable<? extends BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
+        this.rootNode = rootNode;
+        this.placeholders = placeholders;
+        this.context = context;
+
+        this.literalPlaceholders = new HashMap<>(placeholders instanceof Collection ? ((Collection<? extends BlixxPlaceholder<?>>) placeholders).size() : 10);
+        this.patternPlaceholders = new ArrayList<>();
+
+        for (final BlixxPlaceholder<?> placeholder : placeholders) {
+            if (placeholder instanceof BlixxPlaceholder.Literal) {
+                for (final String key : ((BlixxPlaceholder.Literal<?>) placeholder).keys()) {
+                    this.literalPlaceholders.put(key, (BlixxPlaceholder.Literal<?>) placeholder);
+                }
+
+                continue;
+            }
+
+            if (placeholder instanceof BlixxPlaceholder.Pattern) {
+                this.patternPlaceholders.add((BlixxPlaceholder.Pattern<?>) placeholder);
+            }
+        }
+    }
 
     public abstract void work();
 
-    protected void handleObjectReplacement(Indexable.WithNodeContent withNodeContent, String placeholder, Object value) {
+    protected String statefulReplace(String input, String what, String to) {
+        final StringBuilder sb = new StringBuilder(input.length() + what.length());
+        int start = 0;
+        int nextMatch;
+        boolean replaced = false;
+
+        while ((nextMatch = input.indexOf(what, start)) != -1) {
+            sb.append(input, start, nextMatch);
+            sb.append(to);
+
+            start = nextMatch + what.length();
+            replaced = true;
+        }
+
+        if (input.length() >= start) {
+            sb.append(input, start, input.length());
+        }
+
+        return !replaced ? null : sb.toString();
+    }
+
+    protected void handleObjectReplacement(Indexable.WithNodeContent withNodeContent, String match, Object value) {
         final BlixxNodeImpl node = (BlixxNodeImpl) withNodeContent.getNode();
         if (value instanceof BlixxComponentImpl) {
-            this.handleComponentReplacement(placeholder, (BlixxComponentImpl) value, node);
+            this.handleComponentReplacement(match, (BlixxComponentImpl) value, node);
             return;
         }
 
         if (value instanceof ComponentDecoration) {
-            this.handleDecorationReplacement(node, placeholder, (ComponentDecoration) value);
+            this.handleDecorationReplacement(node, match, (ComponentDecoration) value);
             return;
         }
 
-        this.handleStringReplacement(node, placeholder, value);
+        this.handleStringReplacement(node, match, value);
     }
 
     protected void handleDecorationReplacement(BlixxNodeImpl node, String placeholder, ComponentDecoration decoration) {
-        final int startIndex = node.getContent().indexOf(placeholder);
-        if (startIndex == -1) {
-            return;
-        }
-
-        node.setContent(node.getContent().replace(placeholder,""));
-
-        final ObjectArray<BlixxTag.WithDefinedData<?>> matchTags = node.getTags().copy();
-        BlixxNodeImpl current = node;
-
-        while (current != null) {
-            if (!current.getTags().equals(matchTags)) {
-                return;
-            }
-
-            final Iterable<? extends BlixxTag.WithDefinedData<?>> tags = decoration.getTags(this.rootNode.getSpec().getBlixx());
-            for (final BlixxTag.WithDefinedData<?> tag : tags) {
-                current.addTag(tag);
-            }
-
-            current = current.getNext();
+        for (final BlixxNodeImpl blixxNode : node.splitRemoveApplyDecoration(placeholder, decoration)) {
+            this.postSuccessfulReplacement(blixxNode);
         }
     }
 
     protected void handleStringReplacement(BlixxNodeImpl node, String placeholder, Object value) {
-        final String replace = node.getContent().replace(placeholder, String.valueOf(value));
-        if (replace.equals(node.getContent())) {
+        final String replaced = this.statefulReplace(node.getContent(), placeholder, String.valueOf(value));
+        if (replaced == null) {
             return;
         }
 
-        node.setContent(replace);
+        node.setContent(replaced);
         this.postSuccessfulReplacement(node);
     }
 
@@ -82,9 +107,8 @@ public abstract class AbstractNodeReplacement {
             throw new IllegalStateException("Can only replace plain objects in strings");
         }
 
-        final String content = stringContent.getContent();
-        final String replaced = content.replace(placeholder, String.valueOf(value));
-        if (replaced.equals(content)) {
+        final String replaced = this.statefulReplace(stringContent.getContent(), placeholder, String.valueOf(value));
+        if (replaced == null) {
             return;
         }
 
@@ -92,49 +116,43 @@ public abstract class AbstractNodeReplacement {
         this.postSuccessfulReplacement(stringContent);
     }
 
-    protected void handleLiteralReplacement(String fullStringPlaceholder, Iterable<Indexable> nodes, BlixxPlaceholder.Literal<?> placeholder, PlaceholderContext context) {
-        final Collection<String> keys = placeholder.keys();
-        if (!keys.contains(fullStringPlaceholder.substring(1, fullStringPlaceholder.length() - 1))) {
-            return;
-        }
-
+    protected void handleLiteralReplacement(String placeholderKey, IndexedPlaceholder indexedPlaceholder, BlixxPlaceholder.Literal<?> placeholder, PlaceholderContext context) {
         final Object value = placeholder.get(context);
-        for (final Indexable indexable : nodes) {
-            this.handleReplacement(fullStringPlaceholder, indexable, value);
+        for (final IndexedPlaceholder.Entry entry : indexedPlaceholder.getEntries()) {
+            this.handleReplacement(entry.compileReplacement(placeholderKey), entry.getIndexable(), value);
         }
     }
 
-    protected void handleReplacement(String fullPlaceholder, Indexable indexable, Object value) {
-        if (indexable instanceof Indexable.WithNodeContent) {
-            this.handleObjectReplacement((Indexable.WithNodeContent) indexable, fullPlaceholder, value);
+    protected void handleReplacement(String match, Indexable in, Object value) {
+        if (in instanceof Indexable.WithNodeContent) {
+            this.handleObjectReplacement((Indexable.WithNodeContent) in, match, value);
             return;
         }
 
-        if (indexable instanceof Indexable.WithStringContent) {
-            this.handleObjectReplacementInString((Indexable.WithStringContent) indexable, fullPlaceholder, value);
+        if (in instanceof Indexable.WithStringContent) {
+            this.handleObjectReplacementInString((Indexable.WithStringContent) in, match, value);
             return;
         }
 
         throw new IllegalStateException("Can only replace objects in nodes or strings");
     }
 
-    protected void handlePatternReplacement(String fullStringPlaceholder, Iterable<Indexable> nodes, BlixxPlaceholder.Pattern<?> placeholder, PlaceholderContext context) {
+    protected void handlePatternReplacement(String rawPlaceholder, IndexedPlaceholder indexedPlaceholder, BlixxPlaceholder.Pattern<?> placeholder, PlaceholderContext context) {
         final Pattern pattern = placeholder.pattern();
-        final Matcher matcher = pattern.matcher(fullStringPlaceholder.substring(1, fullStringPlaceholder.length() - 1));
+        final Matcher matcher = pattern.matcher(rawPlaceholder);
 
         final PlaceholderContext compose = PlaceholderContext.compose(PlaceholderContext.create(matcher), context);
         while (matcher.find()) {
             final Object value = placeholder.get(compose);
-            for (final Indexable indexable : nodes) {
-                this.handleReplacement(fullStringPlaceholder, indexable, value);
+            for (final IndexedPlaceholder.Entry entry : indexedPlaceholder.getEntries()) {
+                this.handleReplacement(entry.compileReplacement(rawPlaceholder), entry.getIndexable(), value);
             }
         }
     }
 
     private void handleComponentReplacement(String placeholder, BlixxComponentImpl value, BlixxNodeImpl node) {
-        for (final BlixxNodeImpl blixxNode : node.splitReplace(placeholder, value.getNode())) {
+        for (final BlixxNodeImpl blixxNode : node.splitReplaceRestricted(placeholder, value.getNode())) {
             this.postSuccessfulReplacement(blixxNode);
         }
-
     }
 }

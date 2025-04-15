@@ -2,6 +2,7 @@ package dev.oop778.blixx.api.parser.node.keyedspec;
 
 import dev.oop778.blixx.api.parser.indexable.Indexable;
 import dev.oop778.blixx.api.parser.node.BlixxNodeImpl;
+import dev.oop778.blixx.api.parser.node.IndexedPlaceholder;
 import dev.oop778.blixx.api.parser.node.replacement.AbstractNodeReplacement;
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
@@ -9,33 +10,34 @@ import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 import java.util.*;
 
 public class NodeReplacementKeyed extends AbstractNodeReplacement {
-    private final Map<String, List<Indexable>> placeholderToNode;
+    private final Map<String, IndexedPlaceholder> placeholderToNode;
     private final Set<Indexable> toCheckForNewPlaceholders;
 
     public NodeReplacementKeyed(BlixxNodeImpl node, Iterable<? extends BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
         super(node, placeholders, context);
-        this.placeholderToNode = this.collectPlaceholders();
-        this.toCheckForNewPlaceholders = new HashSet<>();
+        this.placeholderToNode = this.collectInitialPlaceholders();
+        this.toCheckForNewPlaceholders = Collections.newSetFromMap(new IdentityHashMap<>());
     }
 
+    @Override
     public void work() {
         while (!this.placeholderToNode.isEmpty()) {
-            for (final Map.Entry<String, List<Indexable>> entry : this.placeholderToNode.entrySet()) {
-                final String fullPlaceholder = entry.getKey();
+            for (final Map.Entry<String, IndexedPlaceholder> entry : this.placeholderToNode.entrySet()) {
+                final String placeholder = entry.getKey();
 
-                for (final BlixxPlaceholder<?> blixxPlaceholder : this.placeholders) {
-                    if (blixxPlaceholder instanceof BlixxPlaceholder.Literal) {
-                        this.handleLiteralReplacement(fullPlaceholder, entry.getValue(), (BlixxPlaceholder.Literal<?>) blixxPlaceholder, this.context);
-                        continue;
-                    }
+                final BlixxPlaceholder.Literal<?> literal = this.literalPlaceholders.get(placeholder);
+                if (literal != null) {
+                    this.handleLiteralReplacement(placeholder, entry.getValue(), literal, this.context);
+                    continue;
+                }
 
-                    if (blixxPlaceholder instanceof BlixxPlaceholder.Pattern) {
-                        this.handlePatternReplacement(fullPlaceholder, entry.getValue(), (BlixxPlaceholder.Pattern<?>) blixxPlaceholder, this.context);
-                    }
+                for (final BlixxPlaceholder.Pattern<?> patternPlaceholder : this.patternPlaceholders) {
+                    this.handlePatternReplacement(placeholder, entry.getValue(), patternPlaceholder, this.context);
                 }
             }
 
             this.placeholderToNode.clear();
+
             if (!this.toCheckForNewPlaceholders.isEmpty()) {
                 this.checkForNewPlaceholders();
             }
@@ -49,13 +51,16 @@ public class NodeReplacementKeyed extends AbstractNodeReplacement {
 
     private void checkForNewPlaceholders() {
         for (final Indexable indexable : this.toCheckForNewPlaceholders) {
-            BlixxKeyedNodeSpec.findNewPlaceholders(indexable, this.rootNode.getSpec().getBlixx().parserConfig().placeholderFormats(), (placeholder, $) -> this.placeholderToNode.computeIfAbsent(placeholder, ($2) -> new ArrayList<>()).add(indexable));
+            BlixxKeyedNodeSpec.findNewPlaceholders(indexable, this.rootNode.getSpec().getBlixx().parserConfig().placeholderFormats(), (match, $) -> {
+                final String placeholderKey = match.substring(1, match.length() - 1);
+                this.placeholderToNode.computeIfAbsent(placeholderKey, ($2) -> new IndexedPlaceholder()).addIndexable(match, indexable);
+            });
         }
     }
 
-    private Map<String, List<Indexable>> collectPlaceholders() {
+    private Map<String, IndexedPlaceholder> collectInitialPlaceholders() {
         final Iterator<BlixxNodeImpl> iterator = this.rootNode.iterator(true);
-        final Map<String, List<Indexable>> placeholderToNode = new HashMap<>();
+        final Map<String, IndexedPlaceholder> placeholderToNode = new HashMap<>();
 
         while (iterator.hasNext()) {
             final BlixxNodeImpl node = iterator.next();

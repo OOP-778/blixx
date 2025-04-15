@@ -1,8 +1,10 @@
 package dev.oop778.blixx;
 
 import dev.oop778.blixx.api.Blixx;
+import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.tag.BlixxTags;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.util.Objects;
@@ -16,6 +18,12 @@ public class BaseBlixxTest {
                     .withPlaceholderFormat('%', '%')
                     .withPlaceholderFormat('{', '}')
                     .withPlaceholderFormat('<', '>')
+                    .withParsePlaceholder(BlixxPlaceholder.<String>builder()
+                            .literal()
+                            .withKey("player_username")
+                            .withValue(() -> "gg")
+                            .build()
+                    )
             )
             .withStandardPlaceholderConfig()
             .build();
@@ -28,6 +36,11 @@ public class BaseBlixxTest {
         final String expectedString = LegacyComponentSerializer.legacyAmpersand().serialize(expected);
         final String givenString = LegacyComponentSerializer.legacyAmpersand().serialize(given);
 
+        assertEquals(expectedString, givenString);
+    }
+
+    protected void componentSerializesTo(String expectedString, ComponentLike given) {
+        final String givenString = LegacyComponentSerializer.legacyAmpersand().serialize(given.asComponent());
         assertEquals(expectedString, givenString);
     }
 }

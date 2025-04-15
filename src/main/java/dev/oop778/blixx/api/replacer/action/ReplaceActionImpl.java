@@ -25,13 +25,13 @@ public class ReplaceActionImpl implements ReplaceAction<Object> {
     }
 
     @Override
-    public <OUT> ReplaceAction<OUT> preReplacing(@NonNull ReplacerProcessor<Object, OUT> processor) {
+    public <OUT> ReplaceAction<OUT> preReplacing(@NonNull ReplacerProcessor<? super Object, OUT> processor) {
         this.preProcessors.add(processor);
         return (ReplaceAction<OUT>) this;
     }
 
     @Override
-    public <OUT> ReplaceAction<OUT> postReplacing(@NonNull ReplacerProcessor<Object, OUT> processor) {
+    public <OUT> ReplaceAction<OUT> postReplacing(@NonNull ReplacerProcessor<? super Object, OUT> processor) {
         this.postProcessors.add(processor);
         return (ReplaceAction<OUT>) this;
     }

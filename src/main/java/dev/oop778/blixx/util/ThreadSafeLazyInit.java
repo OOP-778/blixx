@@ -14,7 +14,7 @@ public class ThreadSafeLazyInit<T> {
         if (this.instance == null) {
             synchronized (this) {
                 if (this.instance == null) {
-                    this.instance = UnsafeCast.cast(new Object());
+                    this.instance = UnsafeCast.cast(this.supplier.get());
                 }
             }
         }

@@ -7,20 +7,21 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.Style;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import java.util.function.UnaryOperator;
 
 @RequiredArgsConstructor
 @Getter
+@ApiStatus.Internal
 public class BlixxComponentImpl implements BlixxComponent {
     private final BlixxNodeImpl node;
 
     @Override
     public BlixxComponent replace(Iterable<? extends BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
-        final BlixxNodeImpl copy = this.node.copy();
-        copy.replace(placeholders, context);
-        return new BlixxComponentImpl(copy);
+        return this.actOnCopy(copy -> copy.doReplaceWithoutCopy(placeholders, context));
     }
 
     @Override
@@ -34,29 +35,52 @@ public class BlixxComponentImpl implements BlixxComponent {
 
     @Override
     public BlixxComponent append(@NotNull @NonNull BlixxComponent... component) {
-        final BlixxComponent us = this.copy();
-        final BlixxNodeImpl currentEndNode = ((BlixxNodeImpl) us.getNode()).findTreeEnd();
+        return this.actOnCopy(copy -> {
+            BlixxNodeImpl currentEndNode = copy.getNode().findTreeEnd();
+            for (@NotNull @NonNull final BlixxComponent their : component) {
+                final BlixxNodeImpl theirNode = (BlixxNodeImpl) their.copy().getNode();
+                currentEndNode.setNext(theirNode);
+                theirNode.setPrevious(currentEndNode);
 
-        for (@NotNull @NonNull final BlixxComponent their : component) {
-            final BlixxNodeImpl theirNode = (BlixxNodeImpl) their.copy().getNode();
-            theirNode.setPrevious(currentEndNode);
+                currentEndNode = theirNode;
+            }
 
-        }
+            return copy;
+        });
+    }
 
-        return us;
+    @Override
+    public BlixxComponent append(@NonNull Component component) {
+        return this.append(BlixxComponent.wrap(component));
     }
 
     @Override
     public BlixxComponent append(@NonNull Iterable<BlixxComponent> components) {
-        final BlixxComponent us = this.copy();
-        final BlixxNodeImpl currentEndNode = ((BlixxNodeImpl) us.getNode()).findTreeEnd();
+        return this.actOnCopy(copy -> {
+            BlixxNodeImpl currentEndNode = copy.getNode().findTreeEnd();
+            for (@NotNull @NonNull final BlixxComponent their : components) {
+                final BlixxNodeImpl theirNode = (BlixxNodeImpl) their.copy().getNode();
+                currentEndNode.setNext(theirNode);
+                theirNode.setPrevious(currentEndNode);
 
-        for (@NotNull @NonNull final BlixxComponent their : components) {
-            final BlixxNodeImpl theirNode = (BlixxNodeImpl) their.copy().getNode();
-            theirNode.setPrevious(currentEndNode);
+                currentEndNode = theirNode;
+            }
 
-        }
+            return copy;
+        });
+    }
 
-        return us;
+    @Override
+    public Component asComponent(Style defaultStyle) {
+        return this.node.build(defaultStyle);
+    }
+
+    public BlixxComponentImpl doReplaceWithoutCopy(Iterable<? extends BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
+        this.node.replace(placeholders, context);
+        return this;
+    }
+
+    public BlixxComponent actOnCopy(UnaryOperator<BlixxComponentImpl> operator) {
+        return operator.apply((BlixxComponentImpl) this.copy());
     }
 }

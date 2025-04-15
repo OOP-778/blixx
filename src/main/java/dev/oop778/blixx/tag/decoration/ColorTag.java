@@ -73,8 +73,8 @@ public class ColorTag implements BlixxTag.Pattern<TextColor>, ColorChangingTag<T
     }
 
     @Override
-    public boolean canCoexist(@NonNull BlixxProcessor.Context context, BlixxTag<?> other) {
-        return !other.isInstanceOf(ColorChangingTag.class);
+    public boolean canCoexist(BlixxTag<?> other) {
+        return !other.isInstanceOf(ColorChangingTag.class) && !(other.isInstanceOf(DecorationTag.class));
     }
 
     @Override

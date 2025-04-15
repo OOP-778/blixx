@@ -34,6 +34,7 @@ public interface PlaceholderContext {
     }
 
     <T> Optional<T> find(Class<T> clazz);
+
     <T> List<T> findAll(Class<T> clazz);
 
     @CheckReturnValue

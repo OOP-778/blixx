@@ -11,6 +11,7 @@
 
 Blixx is actively being developed. Upcoming features:
 - Placeholder caching
+- Support for combining with native adventure components
 - Quality improvements (e.g., moving implementation classes out of API)
 - Add documentation to all API classes
 - Initial release

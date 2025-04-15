@@ -5,18 +5,22 @@ import dev.oop778.blixx.api.tag.BlixxProcessor;
 import dev.oop778.blixx.api.tag.BlixxTag;
 import dev.oop778.blixx.text.argument.BaseArgumentQueue;
 import dev.oop778.blixx.util.adventure.FastComponentBuilder;
-import lombok.Data;
-import lombok.NonNull;
+import lombok.*;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.regex.Matcher;
 
 public class GradientTag implements ColorChangingTag<GradientTag.GradientTagData> {
     public static final GradientTag INSTANCE = new GradientTag();
     public static final Processor PROCESSOR = new Processor();
+    private static final java.util.regex.Pattern PARAMETER_VALUE_PATTERN = java.util.regex.Pattern.compile(
+            "([a-zA-Z]+)\\[([^]]+)");
 
     @Override
     public BlixxProcessor getProcessor() {
@@ -26,16 +30,31 @@ public class GradientTag implements ColorChangingTag<GradientTag.GradientTagData
     @Override
     public GradientTagData createData(@NonNull BlixxProcessor.@NonNull ParserContext context, @NotNull BaseArgumentQueue args) {
         final List<TextColor> colors = new ArrayList<>(args.size());
-        float phase = 0;
+        final EnumMap<Parameter, Object> parameters = new EnumMap<>(Parameter.class);
 
         while (args.hasNext()) {
             final String pop = args.pop();
             final TextColor decode = ColorTag.decode(pop);
             if (decode == null) {
                 try {
-                    phase = Float.parseFloat(pop);
+                    parameters.put(Parameter.PHASE, Float.parseFloat(pop));
+                    continue;
                 } catch (NumberFormatException ignored) {
                 }
+            }
+
+            final Matcher matcher = PARAMETER_VALUE_PATTERN.matcher(pop);
+            if (matcher.find()) {
+                final String key = matcher.group(1);
+                final String rawValue = matcher.group(2);
+
+                final Parameter parameter = Parameter.valueOf(key.toUpperCase(Locale.ROOT));
+                final Object o = parameter.parseValue(rawValue);
+                if (o != null) {
+                    parameters.put(parameter, o);
+                }
+
+                continue;
             }
 
             if (decode == null) {
@@ -45,25 +64,70 @@ public class GradientTag implements ColorChangingTag<GradientTag.GradientTagData
             colors.add(decode);
         }
 
-        return new GradientTagData(colors.toArray(new TextColor[0]), phase);
+        return new GradientTagData(colors.toArray(new TextColor[0]), parameters);
     }
 
     @Override
-    public boolean canCoexist(@NonNull BlixxProcessor.Context context, @NonNull BlixxTag<?> other) {
+    public boolean canCoexist(@NonNull BlixxTag<?> other) {
         return !other.isInstanceOf(ColorChangingTag.class);
     }
 
-    @Data
+    @RequiredArgsConstructor
+    protected enum Parameter {
+        PHASE(Float::parseFloat),
+        EVERY(Integer::parseInt);
+        private final CheckedFunction<String, Object> parser;
+
+        public Object parseValue(String input) {
+            try {
+                return this.parser.apply(input);
+            } catch (Throwable e) {
+                throw new IllegalStateException(String.format("Failed to parse parameter `%s` of input `%s`", this.name().toLowerCase(Locale.ROOT), input), e);
+            }
+        }
+    }
+
+    @FunctionalInterface
+    protected interface CheckedFunction<INPUT, OUTPUT> {
+        OUTPUT apply(INPUT input) throws Throwable;
+    }
+
+    @RequiredArgsConstructor
+    @ToString
+    @Getter
     public static class GradientTagData {
         private final TextColor[] colors;
-        private final float phase;
+        private final EnumMap<Parameter, Object> values;
+        private TransitioningData transitioningData;
+
+        public float getPhase() {
+            return (float) this.values.getOrDefault(Parameter.PHASE, 0f);
+        }
+
+        public int getEvery() {
+            return (int) this.values.getOrDefault(Parameter.EVERY, -1);
+        }
+    }
+
+    @Data
+    public static class TransitioningData {
+        private final float position;
+        private final float deltaPosition;
     }
 
     public static class Processor implements BlixxProcessor.Component.Visitor<GradientTagData> {
+
         @Override
         public void visit(@NonNull ComponentContext context) {
             final GradientTagData data = context.getData();
-            final StringBuilder contentBefore = this.buildContentBefore((BlixxNodeImpl) context.getNode(), context.getTag());
+            final float phase = Math.max(-1f, Math.min(1f, data.getPhase()));
+
+            final TransitioningData transitioningData = this.getTransitioningData((BlixxNodeImpl) context.getNode(), context.getTag());
+
+            float position = transitioningData == null ? 0f : transitioningData.position;
+            if (position == 0) {
+                position += phase;
+            }
 
             final String content = context.getNode().getContent();
             if (content.isEmpty() || data.getColors().length == 0) {
@@ -75,14 +139,17 @@ public class GradientTag implements ColorChangingTag<GradientTag.GradientTagData
                     .toArray();
 
             final TextColor[] colors = data.getColors();
-            final float phase = data.getPhase();
             final int colorCount = colors.length;
-            final int length = chars.length;
+            final int resetGradientEveryChars = data.getEvery();
 
-            final int totalCharacters = Math.max(1, length - 1);
-            final float deltaPosition = 1.0f / totalCharacters;
+            final int ourCharacterCount = Math.max(1, chars.length - 1);
+            float deltaPosition = transitioningData == null ? 1.0f / (resetGradientEveryChars == -1 ? ourCharacterCount : resetGradientEveryChars - 1) : transitioningData.deltaPosition;
 
-            float position = (contentBefore.length() + phase) / Math.max(1, totalCharacters + contentBefore.length());
+            // Adjust for small moves
+            if (deltaPosition == 1f) {
+                deltaPosition -= 0.1f;
+            }
+
             final int maxColorIndex = colorCount - 1;
 
             TextColor lastInterpolatedColor = null;
@@ -91,6 +158,7 @@ public class GradientTag implements ColorChangingTag<GradientTag.GradientTagData
             final String nodeContent = context.getNode().getContent();
             final FastComponentBuilder fastComponentBuilder = context.getComponentBuilder();
 
+            int charactersSinceReset = 0;
             for (int i = 0; i < nodeContent.length(); i++) {
                 final char currentChar = nodeContent.charAt(i);
 
@@ -99,7 +167,13 @@ public class GradientTag implements ColorChangingTag<GradientTag.GradientTagData
                     continue;
                 }
 
-                final float adjustedPosition = position * maxColorIndex;
+                // Reset gradient logic
+                if (resetGradientEveryChars > 0 && charactersSinceReset == resetGradientEveryChars) {
+                    position = 0f + phase;
+                    charactersSinceReset = 0;
+                }
+
+                final float adjustedPosition = (position * maxColorIndex) % colorCount;
                 final int startColorIndex = (int) adjustedPosition;
                 final int endColorIndex = Math.min(startColorIndex + 1, maxColorIndex);
 
@@ -120,27 +194,26 @@ public class GradientTag implements ColorChangingTag<GradientTag.GradientTagData
                 }
 
                 position += deltaPosition;
+                charactersSinceReset++;
             }
 
-            fastComponentBuilder.setContent("");  // Clear the content for the current node
+            fastComponentBuilder.setContent("");
+            data.transitioningData = transitioningData == null ? new TransitioningData(position, deltaPosition) : transitioningData;
         }
 
-        protected StringBuilder buildContentBefore(BlixxNodeImpl from, BlixxTag<?> tag) {
-            final StringBuilder builder = new StringBuilder();
-
-            BlixxNodeImpl current = from.getPrevious();
-            while (current != null && current.hasTag(tag::compare)) {
-                for (final char c : current.getContent().toCharArray()) {
-                    if (!Character.isWhitespace(c)) {
-                        builder.append(c);
-                        break;
-                    }
-                }
-
-                current = current.getPrevious();
+        protected TransitioningData getTransitioningData(BlixxNodeImpl from, BlixxTag<?> tag) {
+            final BlixxNodeImpl previousNode = from.getPrevious();
+            if (previousNode == null) {
+                return null;
             }
 
-            return builder;
+            final WithDefinedData<?> previousTag = previousNode.findTag(tag::equals);
+            if (previousTag == null) {
+                return null;
+            }
+
+            final GradientTagData definedData = (GradientTagData) previousTag.getDefinedData();
+            return definedData.getTransitioningData();
         }
 
         protected TextColor interpolateColor(TextColor startColor, TextColor endColor, float factor) {

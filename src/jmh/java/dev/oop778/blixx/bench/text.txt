@@ -1,0 +1,6 @@
+NumberReplacingBench.placeholderPattern  thrpt          0.013          ops/us
+NumberReplacingBench.replacer            thrpt          0.014          ops/us
+NumberReplacingBench.placeholderPattern   avgt         73.508           us/op
+NumberReplacingBench.replacer             avgt         69.182           us/op
+NumberReplacingBench.placeholderPattern     ss       3505.800           us/op
+NumberReplacingBench.replacer               ss       3071.000           us/op

@@ -12,7 +12,7 @@ public interface BlixxPlaceholder<T> {
         return new BlixxPlaceholderBuilder.SelectorStageImpl<>(UnsafeCast::cast);
     }
 
-    static <T> BlixxPlaceholder<T> literal(@NonNull @org.intellij.lang.annotations.Pattern("[a-zA-Z_0-9.]+") String key, T value) {
+    static <T> BlixxPlaceholder<T> literal(@NonNull @org.intellij.lang.annotations.Pattern("[a-zA-Z_0-9.]+") String key, @NonNull T value) {
         return UnsafeCast.cast(builder().literal().withKey(key).withValue(value).build());
     }
 

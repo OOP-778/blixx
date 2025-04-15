@@ -52,7 +52,7 @@ public class InheritanceRegistry<T> {
     private T lookFor(Class<?> key) {
         InheritanceRegistry<T> current = this;
         while (current != null) {
-            final T value = current.get(key);
+            final T value = (T) current.inheritanceMap.get(key);
             if (value != null) {
                 return value;
             }

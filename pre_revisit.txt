@@ -1,0 +1,16 @@
+Benchmark                                                    Mode  Cnt     Score   Error   Units
+MiniMessageBench.blixxWithKeysParse                         thrpt          0.044          ops/us
+MiniMessageBench.blixxWithKeysReplaceAndToComponent         thrpt          0.058          ops/us
+MiniMessageBench.blixxWithMemoryIndexParse                  thrpt          0.042          ops/us
+MiniMessageBench.blixxWithMemoryIndexReplaceAndToComponent  thrpt          0.057          ops/us
+MiniMessageBench.miniMessageWithPlaceholders                thrpt          0.002          ops/us
+MiniMessageBench.blixxWithKeysParse                          avgt         23.410           us/op
+MiniMessageBench.blixxWithKeysReplaceAndToComponent          avgt         17.453           us/op
+MiniMessageBench.blixxWithMemoryIndexParse                   avgt         23.448           us/op
+MiniMessageBench.blixxWithMemoryIndexReplaceAndToComponent   avgt         17.377           us/op
+MiniMessageBench.miniMessageWithPlaceholders                 avgt        488.668           us/op
+MiniMessageBench.blixxWithKeysParse                            ss        985.900           us/op
+MiniMessageBench.blixxWithKeysReplaceAndToComponent            ss       1849.800           us/op
+MiniMessageBench.blixxWithMemoryIndexParse                     ss       1058.000           us/op
+MiniMessageBench.blixxWithMemoryIndexReplaceAndToComponent     ss       1426.200           us/op
+MiniMessageBench.miniMessageWithPlaceholders                   ss       4708.100           us/op

@@ -72,14 +72,13 @@ public class BlixxPlugin extends JavaPlugin {
 
                     final BlixxComponent parse = this.blixx.parseComponent(input.toString());
                     final BlixxComponent blixxComponent = parse.replace(this.parseBlixxPlaceholders(placeholders), null);
+                    final Component component = blixxComponent.asComponent();
 
-                    for (final Component component : AdventureComponentSplitter.split(Component.newline(),blixxComponent.asComponent())) {
-                        sender.sendMessage(component);
-                    }
+                    sender.sendMessage(component);
 
-                    for (final Component component : AdventureComponentSplitter.split(Component.newline(), MiniMessage.miniMessage().deserialize(input.toString(), this.parseMiniMessagePlaceholders(placeholders)))) {
-                        sender.sendMessage(component);
-                    }
+                    //                    for (final Component component : AdventureComponentSplitter.split(Component.newline(), MiniMessage.miniMessage().deserialize(input.toString(), this.parseMiniMessagePlaceholders(placeholders)))) {
+                    //                        sender.sendMessage(component);
+                    //                    }
                 })
         );
 
@@ -128,7 +127,7 @@ public class BlixxPlugin extends JavaPlugin {
                             BlixxPlaceholder.literal("placeholder_10", "Tenth placeholder")
                     );
 
-                    final BlixxComponent parse = this.blixx.parseComponent(input, PlaceholderContext.create(colorScheme));
+                    final BlixxComponent parse = this.blixx.parseComponent(input);
                     for (final Component component : AdventureComponentSplitter.split(Component.newline(), parse.replace(placeholders, PlaceholderContext.create()).asComponent())) {
                         sender.sendMessage(component);
                     }

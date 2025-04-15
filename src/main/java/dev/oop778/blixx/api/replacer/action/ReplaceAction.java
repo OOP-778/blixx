@@ -7,8 +7,8 @@ import lombok.NonNull;
 public interface ReplaceAction<T> {
     ReplaceAction<T> context(@NonNull PlaceholderContext context);
 
-    <OUT> ReplaceAction<OUT> preReplacing(@NonNull ReplacerProcessor<T, OUT> processor);
-    <OUT> ReplaceAction<OUT> postReplacing(@NonNull ReplacerProcessor<T, OUT> processor);
+    <OUT> ReplaceAction<OUT> preReplacing(@NonNull ReplacerProcessor<? super T, OUT> processor);
+    <OUT> ReplaceAction<OUT> postReplacing(@NonNull ReplacerProcessor<? super T, OUT> processor);
 
     T complete();
 }

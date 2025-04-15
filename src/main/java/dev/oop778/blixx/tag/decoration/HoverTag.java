@@ -5,6 +5,7 @@ import dev.oop778.blixx.api.parser.node.BlixxNode;
 import dev.oop778.blixx.api.tag.BlixxProcessor;
 import dev.oop778.blixx.api.tag.BlixxTag;
 import dev.oop778.blixx.text.argument.BaseArgumentQueue;
+import dev.oop778.blixx.util.adventure.StyleBuilder;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -55,16 +56,17 @@ public class HoverTag implements BlixxTag<HoverTag.Action<?>> {
         protected final T value;
         protected final Object key;
 
-        public abstract void apply(Style.Builder builder);
+        public abstract void apply(StyleBuilder builder);
     }
 
     public static class ShowText extends Action<BlixxNode> implements Indexable.WithNodeContent {
+
         public ShowText(BlixxNode node) {
             super(node, node.getKey());
         }
 
         @Override
-        public void apply(@NotNull Style.Builder builder) {
+        public void apply(@NotNull StyleBuilder builder) {
             builder.hoverEvent(HoverEvent.showText(this.value.build()));
         }
 

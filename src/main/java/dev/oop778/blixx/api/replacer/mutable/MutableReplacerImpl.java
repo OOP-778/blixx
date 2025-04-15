@@ -8,8 +8,10 @@ import dev.oop778.blixx.api.replacer.immutable.ReplacerImpl;
 import dev.oop778.blixx.util.UnsafeCast;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -20,8 +22,12 @@ public class MutableReplacerImpl implements MutableReplacer {
         this(new ArrayList<>(2));
     }
 
-    public MutableReplacerImpl(ArrayList<BlixxPlaceholder<?>> placeholders) {
+    public MutableReplacerImpl(List<BlixxPlaceholder<?>> placeholders) {
         this.placeholders = placeholders;
+    }
+
+    public MutableReplacerImpl(@Nullable BlixxPlaceholder<?>[] placeholders) {
+        this(Arrays.asList(placeholders));
     }
 
     @Override

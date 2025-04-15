@@ -4,6 +4,7 @@ import dev.oop778.blixx.api.Blixx;
 import dev.oop778.blixx.api.parser.ParsingContext;
 import dev.oop778.blixx.api.parser.node.BlixxNode;
 import dev.oop778.blixx.util.adventure.FastComponentBuilder;
+import dev.oop778.blixx.util.adventure.StyleBuilder;
 import dev.oop778.blixx.util.collection.ObjectArray;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -31,7 +32,7 @@ public interface BlixxProcessor {
         class ComponentContext extends Context {
             private Object data;
             private BlixxTag.WithDefinedData<?> tag;
-            private Style.Builder styleBuilder;
+            private StyleBuilder styleBuilder;
             private FastComponentBuilder componentBuilder;
 
             public <T> T getData() {

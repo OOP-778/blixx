@@ -7,7 +7,9 @@ public class BaseArgumentQueue {
     private int index = -1;
     private String currentArg;
 
-    public BaseArgumentQueue(String[] args) {this.args = args;}
+    public BaseArgumentQueue(String[] args) {
+        this.args = args;
+    }
 
     public String pop() {
         return ((this.currentArg = this.args[++this.index]) == null ? "" : this.currentArg);

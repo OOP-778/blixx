@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -260,7 +261,7 @@ public interface BlixxPlaceholderBuilder {
             }
 
             if (!this.keys.isEmpty()) {
-                return new BlixxPlaceholderImpl.Literal<>(new ArrayList<>(this.keys), this.valueSupplier, this.constant);
+                return new BlixxPlaceholderImpl.Literal<>(this.keys.size() == 1 ? Collections.singletonList(this.keys.toArray(new String[0])[0]) : new ArrayList<>(this.keys), this.valueSupplier, this.constant);
             }
 
             throw new IllegalStateException("Idk");
