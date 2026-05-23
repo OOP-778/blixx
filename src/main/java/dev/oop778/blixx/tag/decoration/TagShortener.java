@@ -8,7 +8,7 @@ import lombok.ToString;
 @RequiredArgsConstructor
 @Getter
 @ToString
-public class TagShortener<T> implements BlixxTag.Wrapping<T>, BlixxTag.WithDefinedData<T> {
+public class TagShortener<T> implements BlixxTag.WithDefinedData<T> {
     private final BlixxTag<T> originalTag;
     private final T definedData;
 }

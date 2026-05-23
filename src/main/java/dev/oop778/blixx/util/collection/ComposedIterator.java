@@ -16,12 +16,6 @@ public class ComposedIterator<T> implements Iterator<T> {
         this.advance();
     }
 
-    private void advance() {
-        while (this.currentIteratorIndex < this.iterators.length && !this.iterators[this.currentIteratorIndex].hasNext()) {
-            this.currentIteratorIndex++;
-        }
-    }
-
     public ComposedIterator(Iterable<? extends T>... iterables) {
         this.iterators = new Iterator[iterables.length];
         for (int i = 0; i < this.iterators.length; i++) {
@@ -34,6 +28,13 @@ public class ComposedIterator<T> implements Iterator<T> {
         int i = 0;
         for (final Iterator<T> iterator : iterators) {
             this.iterators[i++] = iterator;
+        }
+    }
+
+    private void advance() {
+        while (this.currentIteratorIndex < this.iterators.length
+                && !this.iterators[this.currentIteratorIndex].hasNext()) {
+            this.currentIteratorIndex++;
         }
     }
 

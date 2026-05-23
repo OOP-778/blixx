@@ -1,19 +1,18 @@
 package dev.oop778.blixx.api.placeholder;
 
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.UnknownNullability;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.UnknownNullability;
 
 @ApiStatus.Internal
 public class BlixxPlaceholderImpl {
@@ -56,7 +55,8 @@ public class BlixxPlaceholderImpl {
 
         @Override
         public T get(@NonNull PlaceholderContext context) {
-            final Matcher matcher = context.find(Matcher.class).orElseThrow(() -> new IllegalStateException("Matcher not supplied in Pattern placeholder"));
+            final Matcher matcher = context.find(Matcher.class)
+                    .orElseThrow(() -> new IllegalStateException("Matcher not supplied in Pattern placeholder"));
             return this.function.apply(matcher);
         }
     }
@@ -67,16 +67,17 @@ public class BlixxPlaceholderImpl {
         protected final Class<?>[] requiredClasses;
 
         protected PlaceholderContext mergeContext(PlaceholderContext with) {
-            return with == null ? this.defaultContext : this.defaultContext == null ? with : PlaceholderContext.compose(
-                    this.defaultContext,
-                    with);
+            return with == null
+                    ? this.defaultContext
+                    : this.defaultContext == null ? with : PlaceholderContext.compose(this.defaultContext, with);
         }
 
         protected void preconditions(PlaceholderContext context) {
             for (final Class<?> requiredClass : this.requiredClasses) {
                 if (requiredClass != PlaceholderContext.class) {
                     if (!context.find(requiredClass).isPresent()) {
-                        throw new IllegalStateException(String.format("Failed to find required class - %s - in the context", requiredClass.getName()));
+                        throw new IllegalStateException(String.format(
+                                "Failed to find required class - %s - in the context", requiredClass.getName()));
                     }
                 }
             }
@@ -87,7 +88,11 @@ public class BlixxPlaceholderImpl {
         private final List<String> keys;
         private final Function<PlaceholderContext, T> function;
 
-        public ContextualLiteral(List<String> keys, Function<PlaceholderContext, T> function, PlaceholderContext defaultContext, Class<?>[] requiredClasses) {
+        public ContextualLiteral(
+                List<String> keys,
+                Function<PlaceholderContext, T> function,
+                PlaceholderContext defaultContext,
+                Class<?>[] requiredClasses) {
             super(defaultContext, requiredClasses);
             this.keys = keys;
             this.function = function;
@@ -118,7 +123,11 @@ public class BlixxPlaceholderImpl {
         private final java.util.regex.Pattern pattern;
         private final BiFunction<PlaceholderContext, Matcher, T> function;
 
-        public ContextualPattern(java.util.regex.Pattern pattern, BiFunction<PlaceholderContext, Matcher, T> function, PlaceholderContext defaultContext, Class<?>[] requiredClasses) {
+        public ContextualPattern(
+                java.util.regex.Pattern pattern,
+                BiFunction<PlaceholderContext, Matcher, T> function,
+                PlaceholderContext defaultContext,
+                Class<?>[] requiredClasses) {
             super(defaultContext, requiredClasses);
             this.pattern = pattern;
             this.function = function;
@@ -129,7 +138,8 @@ public class BlixxPlaceholderImpl {
             context = this.mergeContext(context);
             this.preconditions(context);
 
-            final Matcher matcher = context.find(Matcher.class).orElseThrow(() -> new IllegalStateException("Matcher not supplied in Pattern placeholder"));
+            final Matcher matcher = context.find(Matcher.class)
+                    .orElseThrow(() -> new IllegalStateException("Matcher not supplied in Pattern placeholder"));
             return this.function.apply(context, matcher);
         }
     }

@@ -6,14 +6,10 @@ import dev.oop778.blixx.api.replacer.action.ReplaceActionImpl;
 import dev.oop778.blixx.api.replacer.immutable.Replacer;
 import dev.oop778.blixx.api.replacer.immutable.ReplacerImpl;
 import dev.oop778.blixx.util.UnsafeCast;
+import java.util.*;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 public class MutableReplacerImpl implements MutableReplacer {
     private final List<BlixxPlaceholder<?>> placeholders;
@@ -54,5 +50,10 @@ public class MutableReplacerImpl implements MutableReplacer {
     @Override
     public <T> ReplaceAction<T> accept(@NotNull T object) {
         return UnsafeCast.cast(new ReplaceActionImpl(object, this));
+    }
+
+    @Override
+    public @NotNull Iterator<BlixxPlaceholder<?>> iterator() {
+        return this.placeholders.iterator();
     }
 }

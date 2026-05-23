@@ -1,42 +1,46 @@
 package dev.oop778.blixx.api.tag;
 
+import dev.oop778.blixx.api.component.BlixxColor;
+import dev.oop778.blixx.api.component.BlixxDecoration;
 import dev.oop778.blixx.tag.decoration.*;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
+import java.util.*;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+/** Registry of all built-in tags: 16 named colors, 5 decorations with aliases, gradient, hover, click, reset, and small caps. */
 public interface BlixxTags {
-    Map<TextDecoration, List<String>> DECORATIONS = new HashMap<TextDecoration, List<String>>() {{
-        this.put(TextDecoration.BOLD, Arrays.asList("bold", "b"));
-        this.put(TextDecoration.UNDERLINED, Arrays.asList("underlined", "u"));
-        this.put(TextDecoration.STRIKETHROUGH, Arrays.asList("strikethrough", "st"));
-        this.put(TextDecoration.OBFUSCATED, Arrays.asList("obfuscated", "obf"));
-        this.put(TextDecoration.ITALIC, Arrays.asList("italic", "em", "i"));
-    }};
+    /** Decoration-to-alias mapping (e.g., bold -> ["bold", "b"]). */
+    Map<BlixxDecoration, List<String>> DECORATIONS = new HashMap<BlixxDecoration, List<String>>() {
+        {
+            this.put(BlixxDecoration.of("bold"), Arrays.asList("bold", "b"));
+            this.put(BlixxDecoration.of("underlined"), Arrays.asList("underlined", "u"));
+            this.put(BlixxDecoration.of("strikethrough"), Arrays.asList("strikethrough", "st"));
+            this.put(BlixxDecoration.of("obfuscated"), Arrays.asList("obfuscated", "obf"));
+            this.put(BlixxDecoration.of("italic"), Arrays.asList("italic", "em", "i"));
+        }
+    };
 
-    Map<String, BlixxTag<?>> STANDARD = new HashMap<String, BlixxTag<?>>() {{
-        this.put("color", ColorTag.INSTANCE);
-        this.put("decorate", DecorationTag.INSTANCE);
-        this.put("reset", ResetTag.INSTANCE);
-        this.put("gradient", GradientTag.INSTANCE);
-        this.put("hover", HoverTag.INSTANCE);
-        this.put("click", ClickTag.INSTANCE);
-        this.put("small_caps", SmallCapsTag.INSTANCE);
-        this.put("sc", SmallCapsTag.INSTANCE);
+    /** All standard tags keyed by name. Includes colors, decorations, gradient, hover, click, reset, and small caps. */
+    Map<String, BlixxTag<?>> STANDARD = new HashMap<String, BlixxTag<?>>() {
+        {
+            this.put("color", ColorTag.INSTANCE);
+            this.put("decorate", DecorationTag.INSTANCE);
+            this.put("reset", ResetTag.INSTANCE);
+            this.put("gradient", GradientTag.INSTANCE);
+            this.put("hover", HoverTag.INSTANCE);
+            this.put("click", ClickTag.INSTANCE);
+            this.put("small_caps", SmallCapsTag.INSTANCE);
+            this.put("sc", SmallCapsTag.INSTANCE);
 
-        for (final Entry<TextDecoration, List<String>> decorationEntry : DECORATIONS.entrySet()) {
-            final TagShortener<TextDecoration> tag = new TagShortener<>(DecorationTag.INSTANCE, decorationEntry.getKey());
-            for (final String identifier : decorationEntry.getValue()) {
-                this.put(identifier, tag);
+            for (final Entry<BlixxDecoration, List<String>> decorationEntry : DECORATIONS.entrySet()) {
+                final TagShortener<BlixxDecoration> tag =
+                        new TagShortener<>(DecorationTag.INSTANCE, decorationEntry.getKey());
+                for (final String identifier : decorationEntry.getValue()) {
+                    this.put(identifier, tag);
+                }
+            }
+
+            for (final Map.Entry<String, BlixxColor> entry : NamedColors.all().entrySet()) {
+                this.put(entry.getKey(), new TagShortener<>(ColorTag.INSTANCE, entry.getValue()));
             }
         }
-
-        for (final NamedTextColor namedTextColor : NamedTextColor.NAMES.values()) {
-            this.put(namedTextColor.toString(), new TagShortener<>(ColorTag.INSTANCE, namedTextColor));
-        }
-    }};
+    };
 }

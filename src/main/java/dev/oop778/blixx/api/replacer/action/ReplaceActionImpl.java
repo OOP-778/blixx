@@ -4,11 +4,10 @@ import dev.oop778.blixx.api.component.BlixxComponent;
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
 import dev.oop778.blixx.api.replacer.PlaceholderHolder;
 import dev.oop778.blixx.api.replacer.processor.ReplacerProcessor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class ReplaceActionImpl implements ReplaceAction<Object> {
@@ -58,6 +57,7 @@ public class ReplaceActionImpl implements ReplaceAction<Object> {
             return ((BlixxComponent) current).replace(this.holder.getPlaceholders(), this.context);
         }
 
-        throw new IllegalStateException(String.format("idk how to handle %s", current.getClass().getSimpleName()));
+        throw new IllegalStateException(
+                String.format("idk how to handle %s", current.getClass().getSimpleName()));
     }
 }

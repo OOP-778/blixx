@@ -1,4 +1,6 @@
-rootProject.name = 'indexed-adventure'
+rootProject.name = 'blixx'
 
-include(":paper")
+include(":api")
+include(":hytale")
+include(":adventure")
 

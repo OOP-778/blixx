@@ -6,15 +6,11 @@ import dev.oop778.blixx.api.replacer.action.ReplaceActionImpl;
 import dev.oop778.blixx.api.replacer.mutable.MutableReplacer;
 import dev.oop778.blixx.api.replacer.mutable.MutableReplacerImpl;
 import dev.oop778.blixx.util.UnsafeCast;
+import java.util.*;
+import java.util.function.Consumer;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Consumer;
 
 public class ReplacerImpl implements Replacer {
     private final List<BlixxPlaceholder<?>> placeholders;
@@ -61,5 +57,10 @@ public class ReplacerImpl implements Replacer {
         final ReplacerImpl copy = new ReplacerImpl(new ArrayList<>(this.placeholders));
         consumer.accept(copy);
         return copy;
+    }
+
+    @Override
+    public @NotNull Iterator<BlixxPlaceholder<?>> iterator() {
+        return this.placeholders.iterator();
     }
 }

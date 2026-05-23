@@ -1,8 +1,5 @@
 package dev.oop778.blixx.api.component;
 
-import lombok.RequiredArgsConstructor;
-import net.kyori.adventure.text.Component;
-
 import java.util.Collections;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -10,9 +7,12 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
+import lombok.RequiredArgsConstructor;
 
+/** {@link Collector} that joins {@link BlixxComponent}s with a delimiter, for use with {@link java.util.stream.Stream#collect}. */
 @RequiredArgsConstructor
-public class BlixxComponentCollector implements Collector<BlixxComponent, BlixxComponentCollector.State, BlixxComponent> {
+public class BlixxComponentCollector
+        implements Collector<BlixxComponent, BlixxComponentCollector.State, BlixxComponent> {
     private final BlixxComponent delimiter;
     private final boolean includeAtTheEnd;
 
@@ -52,7 +52,7 @@ public class BlixxComponentCollector implements Collector<BlixxComponent, BlixxC
     public Function<State, BlixxComponent> finisher() {
         return (joinState) -> {
             if (joinState.result == null) {
-                return BlixxComponent.wrap(Component.empty());
+                return BlixxComponent.empty();
             }
 
             if (this.includeAtTheEnd) {

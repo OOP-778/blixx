@@ -3,7 +3,6 @@ package dev.oop778.blixx.tag.decoration;
 import dev.oop778.blixx.api.tag.BlixxProcessor;
 import dev.oop778.blixx.api.tag.BlixxTag;
 import lombok.NonNull;
-import net.kyori.adventure.text.format.TextDecoration;
 
 public class SmallCapsTag implements BlixxTag.NoData {
     private static final Processor PROCESSOR = new Processor();
@@ -14,12 +13,14 @@ public class SmallCapsTag implements BlixxTag.NoData {
         return PROCESSOR;
     }
 
-    public static class Processor implements BlixxProcessor.Component.Decorator<TextDecoration> {
-        private static final char[] SMALL_CAPS_ALPHABET = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴩqʀꜱᴛᴜᴠᴡxyᴢ".toCharArray();
+    public static class Processor implements BlixxProcessor.Component.Decorator<Void> {
+        private static final char[] SMALL_CAPS_ALPHABET =
+                "\u1D00\u0299\u1D04\u1D05\u1D07\uA730\u0262\u029C\u026A\u1D0A\u1D0B\u029F\u1D0D\u0274\u1D0F\u1D29q\u0280\uA731\u1D1B\u1D1C\u1D20\u1D21xy\u1D22"
+                        .toCharArray();
 
         @Override
         public void decorate(@NonNull ComponentContext context) {
-            context.getComponentBuilder().setContent(this.convert(context.getComponentBuilder().getContent()));
+            context.setContent(this.convert(context.getContent()));
         }
 
         public String convert(String input) {

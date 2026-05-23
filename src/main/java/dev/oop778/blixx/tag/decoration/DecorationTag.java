@@ -1,23 +1,21 @@
 package dev.oop778.blixx.tag.decoration;
 
+import dev.oop778.blixx.api.component.BlixxDecoration;
 import dev.oop778.blixx.api.tag.BlixxProcessor;
 import dev.oop778.blixx.api.tag.BlixxTag;
-import dev.oop778.blixx.text.argument.BaseArgumentQueue;
+import dev.oop778.blixx.util.StringQueue;
 import lombok.NonNull;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.format.Style;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.UnknownNullability;
 
-public class DecorationTag implements BlixxTag<TextDecoration> {
+public class DecorationTag implements BlixxTag<BlixxDecoration> {
     public static final DecorationTag INSTANCE = new DecorationTag();
     public static final Processor PROCESSOR = new Processor();
 
     @Override
-    public TextDecoration createData(@NonNull BlixxProcessor.@NonNull ParserContext context, @NotNull BaseArgumentQueue args) {
+    public BlixxDecoration createData(
+            @NonNull BlixxProcessor.@NonNull ParserContext context, @NotNull StringQueue args) {
         final String decoration = args.pop();
-        return TextDecoration.valueOf(decoration.toUpperCase());
+        return BlixxDecoration.of(decoration);
     }
 
     @Override
@@ -25,11 +23,10 @@ public class DecorationTag implements BlixxTag<TextDecoration> {
         return PROCESSOR;
     }
 
-    public static class Processor implements BlixxProcessor.Component.Decorator<TextDecoration> {
-
+    public static class Processor implements BlixxProcessor.Component.Decorator<BlixxDecoration> {
         @Override
         public void decorate(@NonNull ComponentContext context) {
-            context.getStyleBuilder().decorate(context.getData());
+            context.getStyle().decorate(context.getData());
         }
     }
 }

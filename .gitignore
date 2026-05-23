@@ -6,3 +6,4 @@
 **/build/
 buildSrc/**
 paper/run
+hytale/run

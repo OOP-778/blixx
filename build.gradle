@@ -1,16 +1,70 @@
-import me.champeau.jmh.JmhBytecodeGeneratorTask
-import me.champeau.jmh.JMHTask
+import dev.oop778.gradle.common.CommonPlugin
+import dev.oop778.gradle.common.DeployerExtension
+import dev.oop778.gradle.common.HierarchyProjectName
+import dev.oop778.gradle.common.enums.MavenCentralReleaseManagement
 
 plugins {
     id 'java-library'
-    id "me.champeau.jmh" version "0.7.2"
+    id 'maven-publish'
+    id 'jacoco'
+    id 'com.diffplug.spotless' version '8.5.1' apply false
+    id "me.champeau.jmh" version "0.7.2" apply false
     id("xyz.jpenilla.run-paper") version "2.3.1" apply false
     id("io.github.goooler.shadow") version "8.1.7" apply false
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.16" apply false
 }
 
-group = 'dev.oop778'
-version = '1.0-SNAPSHOT'
+apply plugin: CommonPlugin
+common {
+    applyCommonToAllProjects()
+}
+
+allprojects {
+    apply plugin: 'com.diffplug.spotless'
+    spotless {
+        java {
+            palantirJavaFormat()
+            custom('removeBlankLineAfterOpenBrace') { it.replaceAll('\\{\\n\\n', '{\n') }
+        }
+    }
+
+    if (project == project.rootProject) {
+        return
+    }
+
+    apply {
+        plugin("java-library")
+        plugin("signing")
+    }
+
+    java {
+        withSourcesJar()
+        withJavadocJar()
+    }
+
+    deployer {
+        if (System.getenv("CI") != null) {
+            if (System.getenv("SIGN_KEY") != null) {
+                setupSigning(System.getenv("SIGN_KEY"), System.getenv("SIGN_PASSWORD"))
+            }
+
+            def publication = createPublicationFrom(components.java, HierarchyProjectName.get(project), "dev.oop778", System.getenv("VERSION"))
+            publishToMavenCentral(publication, System.getenv("MAVEN_USERNAME"), System.getenv("MAVEN_PASSWORD"), MavenCentralReleaseManagement.USER_MANAGED)
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        compileOnlyApi(libs.jetbrainsAnnotations)
+        compileOnly(libs.lombok)
+        annotationProcessor(libs.lombok)
+
+        testImplementation(libs.lombok)
+        testAnnotationProcessor(libs.lombok)
+    }
+}
 
 repositories {
     mavenCentral()
@@ -23,85 +77,41 @@ java {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    if (!(name.containsIgnoreCase("test") || name.containsIgnoreCase("jmh"))) {
+    if (!name.containsIgnoreCase("test")) {
         return
     }
 
     javaCompiler = javaToolchains.compilerFor {
-        languageVersion = JavaLanguageVersion.of(22)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
 tasks.withType(Test).configureEach {
     javaLauncher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(22)
+        languageVersion = JavaLanguageVersion.of(21)
     }
-}
-
-tasks.withType(JmhBytecodeGeneratorTask).configureEach {
-    javaLauncher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(22)
-    }
-}
-
-dependencies {
-    jmh 'org.openjdk.jmh:jmh-core:1.36'
-    jmhAnnotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess:1.36'
-
-    testImplementation platform('org.junit:junit-bom:5.10.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    compileOnly "net.kyori:adventure-api:4.9.3"
-    compileOnly "net.kyori:adventure-text-serializer-legacy:4.9.3"
-    compileOnly 'org.jetbrains:annotations:26.0.1'
-    compileOnly("net.kyori:adventure-text-minimessage:4.10.0") {
-        transitive = false
-    }
-
-    compileOnly 'org.projectlombok:lombok:1.18.34'
-    annotationProcessor 'org.projectlombok:lombok:1.18.34'
-
-    testCompileOnly 'org.projectlombok:lombok:1.18.34'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
-
-    testImplementation "net.kyori:adventure-api:4.9.3"
-    testImplementation("net.kyori:adventure-text-minimessage:4.10.0") {
-        transitive = false
-    }
-    testImplementation "net.kyori:adventure-text-serializer-plain:4.9.3"
-    testImplementation "net.kyori:adventure-text-serializer-legacy:4.9.3"
-    testImplementation "com.google.code.gson:gson:2.11.0"
-
-    jmhImplementation("net.kyori:adventure-text-minimessage:4.10.0")
 }
 
 test {
     useJUnitPlatform()
 }
 
-jmh {
-    includes = ["MiniMessage"]
-    forceGC = true
-    profilers = ["gc", "stack"]
-    javaLauncher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(22)
+jacocoTestReport {
+    reports {
+        xml.required = true
+        html.required = true
     }
 }
 
-tasks.named("jmh").configure {
-    doFirst {
-        println "Configuring JVM arguments before running JMH."
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(22)
-        }
-    }
-}
+dependencies {
+    api(project(":api"))
 
-//tasks.withType(JMHTask).configureEach {
-//    doFirst {
-//        execOperations.javaexec {
-//            javaLauncher = javaToolchains.launcherFor {
-//                languageVersion = JavaLanguageVersion.of(22)
-//            }
-//        }
-//    }
-//}
+    compileOnlyApi(libs.jetbrainsAnnotations)
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
+
+    testImplementation platform(libs.junit.bom)
+    testImplementation libs.junit.jupiter
+    testImplementation(libs.lombok)
+    testAnnotationProcessor(libs.lombok)
+}

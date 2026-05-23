@@ -1,32 +1,30 @@
 package dev.oop778.blixx.api.component;
 
-import dev.oop778.blixx.api.parser.node.BlixxNodeImpl;
+import dev.oop778.blixx.api.parser.node.BlixxNode;
+import dev.oop778.blixx.api.parser.node.BlixxNodeInternal;
+import dev.oop778.blixx.api.parser.node.kind.BlixxPlaceholderNode;
 import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.placeholder.context.PlaceholderContext;
+import java.util.function.UnaryOperator;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.Style;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.UnaryOperator;
-
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Getter
 @ApiStatus.Internal
 public class BlixxComponentImpl implements BlixxComponent {
-    private final BlixxNodeImpl node;
+    private BlixxNodeInternal node;
+
+    public BlixxComponentImpl(BlixxNode node) {
+        this.node = (BlixxNodeInternal) node;
+    }
 
     @Override
     public BlixxComponent replace(Iterable<? extends BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
         return this.actOnCopy(copy -> copy.doReplaceWithoutCopy(placeholders, context));
-    }
-
-    @Override
-    public @NotNull Component asComponent() {
-        return this.node.getAdventureComponent();
     }
 
     public BlixxComponent copy() {
@@ -36,9 +34,10 @@ public class BlixxComponentImpl implements BlixxComponent {
     @Override
     public BlixxComponent append(@NotNull @NonNull BlixxComponent... component) {
         return this.actOnCopy(copy -> {
-            BlixxNodeImpl currentEndNode = copy.getNode().findTreeEnd();
+            BlixxNodeInternal currentEndNode = copy.getNode().findTreeEnd();
             for (@NotNull @NonNull final BlixxComponent their : component) {
-                final BlixxNodeImpl theirNode = (BlixxNodeImpl) their.copy().getNode();
+                final BlixxNodeInternal theirNode =
+                        (BlixxNodeInternal) their.copy().getNode();
                 currentEndNode.setNext(theirNode);
                 theirNode.setPrevious(currentEndNode);
 
@@ -47,19 +46,15 @@ public class BlixxComponentImpl implements BlixxComponent {
 
             return copy;
         });
-    }
-
-    @Override
-    public BlixxComponent append(@NonNull Component component) {
-        return this.append(BlixxComponent.wrap(component));
     }
 
     @Override
     public BlixxComponent append(@NonNull Iterable<BlixxComponent> components) {
         return this.actOnCopy(copy -> {
-            BlixxNodeImpl currentEndNode = copy.getNode().findTreeEnd();
+            BlixxNodeInternal currentEndNode = copy.getNode().findTreeEnd();
             for (@NotNull @NonNull final BlixxComponent their : components) {
-                final BlixxNodeImpl theirNode = (BlixxNodeImpl) their.copy().getNode();
+                final BlixxNodeInternal theirNode =
+                        (BlixxNodeInternal) their.copy().getNode();
                 currentEndNode.setNext(theirNode);
                 theirNode.setPrevious(currentEndNode);
 
@@ -70,13 +65,15 @@ public class BlixxComponentImpl implements BlixxComponent {
         });
     }
 
-    @Override
-    public Component asComponent(Style defaultStyle) {
-        return this.node.build(defaultStyle);
-    }
-
-    public BlixxComponentImpl doReplaceWithoutCopy(Iterable<? extends BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
+    public BlixxComponentImpl doReplaceWithoutCopy(
+            Iterable<? extends BlixxPlaceholder<?>> placeholders, PlaceholderContext context) {
         this.node.replace(placeholders, context);
+
+        while (this.node instanceof BlixxPlaceholderNode
+                && ((BlixxPlaceholderNode) this.node).getRootNodeReplacement() != null) {
+            this.node = ((BlixxPlaceholderNode) this.node).getRootNodeReplacement();
+        }
+
         return this;
     }
 

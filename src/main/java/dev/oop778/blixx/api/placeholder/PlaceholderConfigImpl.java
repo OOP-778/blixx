@@ -6,9 +6,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
-import java.util.Map;
-import java.util.function.Function;
-
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)

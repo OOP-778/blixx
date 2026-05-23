@@ -2,6 +2,7 @@ package dev.oop778.blixx.util.collection;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class ArrayCharacterQueue {
     private final char[] queue;
@@ -99,25 +100,7 @@ public class ArrayCharacterQueue {
         this.index = Math.min(this.queue.length - 1, this.index + by);
     }
 
-    public String nextWhilstMatches(StringCharPredicate predicate) {
-        final StringBuilder builder = new StringBuilder();
-        while (this.hasNext() && predicate.test(builder.toString(), this.peek())) {
-            builder.append(this.next());
-        }
-
-        return builder.toString();
-    }
-
-    public String nextWhilstNotMatches(StringCharPredicate predicate) {
-        final StringBuilder builder = new StringBuilder();
-        while (this.hasNext() && !predicate.test(builder.toString(), this.peek())) {
-            builder.append(this.next());
-        }
-
-        return builder.toString();
-    }
-
-    public int findEnding(char endingChar, boolean checkEscape, boolean jumpBack) {
+    public int findEnding(Predicate<Character> charAccepter, boolean checkEscape, boolean jumpBack) {
         final char startingChar = this.current();
         int depth = 1;
 
@@ -126,7 +109,7 @@ public class ArrayCharacterQueue {
             final char current = this.next();
             if (current == startingChar) {
                 depth++;
-            } else if (current == endingChar) {
+            } else if (charAccepter.test(current)) {
                 if (--depth == 0 && (checkEscape && !this.isPreviousEscape())) {
                     this.unmark();
                     return this.index;
@@ -143,12 +126,20 @@ public class ArrayCharacterQueue {
         return -1;
     }
 
+    public int findEnding(char endingChar, boolean checkEscape, boolean jumpBack) {
+        return this.findEnding(s -> endingChar == s, checkEscape, jumpBack);
+    }
+
     public void jump(int parsingStart) {
         this.index = parsingStart;
     }
 
-    @FunctionalInterface
-    public interface StringCharPredicate {
-        boolean test(String currentString, char current);
+    public String makeStringOfRange(int start, int end) {
+        return new String(this.queue, start, (end - start) + 1);
+    }
+
+    @Override
+    public String toString() {
+        return new String(this.queue, 0, this.index);
     }
 }

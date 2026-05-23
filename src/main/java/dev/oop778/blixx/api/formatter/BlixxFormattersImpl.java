@@ -18,7 +18,8 @@ public class BlixxFormattersImpl implements BlixxFormatters {
     }
 
     @Override
-    public <T> BlixxFormatters withInheritance(@NonNull Class<T> clazz, @NonNull BlixxFormatter<? extends T, ?> formatter) {
+    public <T> BlixxFormatters withInheritance(
+            @NonNull Class<T> clazz, @NonNull BlixxFormatter<? extends T, ?> formatter) {
         final BlixxFormattersImpl copy = new BlixxFormattersImpl(this.registry.createChildren());
         copy.registerInheritance(clazz, formatter);
         return copy;

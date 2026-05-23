@@ -1,0 +1,100 @@
+plugins {
+    id 'java-library'
+    id("io.github.goooler.shadow")
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        setUrl("https://maven.hytale.com/release")
+    }
+}
+
+configurations {
+    hytaleServer
+}
+
+dependencies {
+    api(project(":api"))
+    api(project(":"))
+    compileOnly("com.hypixel.hytale:Server:latest.integration")
+    hytaleServer("com.hypixel.hytale:Server:latest.integration")
+
+    compileOnly 'org.jetbrains:annotations:26.0.1'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.register('runServer') {
+    dependsOn 'shadowJar'
+    group = 'hytale'
+    description = 'Runs a Hytale server with the blixx mod'
+
+    doLast {
+        def serverDir = project.file("run")
+        serverDir.mkdirs()
+
+        // Copy shadow jar (with all dependencies) to mods directory
+        def modsDir = new File(serverDir, "mods")
+        modsDir.mkdirs()
+        project.copy {
+            from tasks.shadowJar.archiveFile
+            into modsDir
+        }
+
+        // Copy Assets.zip from Hytale installation if not present
+        def assetsFile = new File(serverDir, "Assets.zip")
+        if (!assetsFile.exists()) {
+            def os = System.getProperty("os.name").toLowerCase()
+            def hytaleDir
+            if (os.contains("win")) {
+                hytaleDir = new File(System.getenv("APPDATA"), "Hytale/install/release/package/game/latest")
+            } else if (os.contains("mac")) {
+                hytaleDir = new File(System.getProperty("user.home"), "Application Support/Hytale/install/release/package/game/latest")
+            } else {
+                def xdgData = System.getenv("XDG_DATA_HOME") ?: new File(System.getProperty("user.home"), ".local/share").absolutePath
+                hytaleDir = new File(xdgData, "Hytale/install/release/package/game/latest")
+            }
+
+            def sourceAssets = new File(hytaleDir, "Assets.zip")
+            if (sourceAssets.exists()) {
+                logger.lifecycle("Copying Assets.zip from Hytale installation: ${sourceAssets}")
+                project.copy {
+                    from sourceAssets
+                    into serverDir
+                }
+            } else {
+                throw new GradleException("Assets.zip not found at ${sourceAssets}. Copy it manually to ${serverDir}")
+            }
+        }
+
+        // Resolve the server jar
+        def serverJar = configurations.hytaleServer.singleFile
+
+        // Use Java 25 toolchain launcher
+        def javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(25)
+        }.get()
+
+        project.exec {
+            workingDir = serverDir
+            commandLine = [
+                javaLauncher.executablePath.asFile.absolutePath,
+                '-Xmx4G', '-Xms4G',
+                '-jar', serverJar.absolutePath,
+                '--assets', 'Assets.zip'
+            ]
+            standardInput = System.in
+        }
+    }
+}

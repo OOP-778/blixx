@@ -1,0 +1,65 @@
+import me.champeau.jmh.JmhBytecodeGeneratorTask
+
+plugins {
+    id "me.champeau.jmh" version "0.7.2"
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    if (!(name.containsIgnoreCase("test") || name.containsIgnoreCase("jmh"))) {
+        return
+    }
+
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.withType(Test).configureEach {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+tasks.withType(JmhBytecodeGeneratorTask).configureEach {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+dependencies {
+    api(project(":api"))
+    api(project(":"))
+    api(libs.adventure.api)
+
+    testImplementation platform(libs.junit.bom)
+    testImplementation libs.junit.jupiter
+    testImplementation libs.gson
+    testImplementation(libs.adventure.text.serializer.plain)
+    testImplementation(libs.adventure.text.serializer.legacy)
+    testImplementation(libs.adventure.text.serializer.gson)
+    testImplementation(libs.adventure.text.minimessage)
+    testImplementation(libs.adventure.platform.bukkit)
+
+    jmh libs.jmh.core
+    jmhAnnotationProcessor libs.jmh.generator
+    jmhImplementation(libs.adventure.text.minimessage)
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jmh {
+    includes = ["MiniMessage"]
+    forceGC = true
+    profilers = ["gc", "stack"]
+    jvm = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(21)
+    }.get().executablePath.asFile.absolutePath
+}

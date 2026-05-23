@@ -1,16 +1,16 @@
 package dev.oop778.blixx.tag.decoration;
 
+import dev.oop778.blixx.api.component.BlixxHoverEvent;
+import dev.oop778.blixx.api.component.BlixxStyle;
 import dev.oop778.blixx.api.parser.indexable.Indexable;
 import dev.oop778.blixx.api.parser.node.BlixxNode;
+import dev.oop778.blixx.api.parser.node.kind.BlixxPlaceholderNode;
 import dev.oop778.blixx.api.tag.BlixxProcessor;
 import dev.oop778.blixx.api.tag.BlixxTag;
-import dev.oop778.blixx.text.argument.BaseArgumentQueue;
-import dev.oop778.blixx.util.adventure.StyleBuilder;
+import dev.oop778.blixx.util.StringQueue;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.Style;
 import org.jetbrains.annotations.NotNull;
 
 public class HoverTag implements BlixxTag<HoverTag.Action<?>> {
@@ -18,7 +18,7 @@ public class HoverTag implements BlixxTag<HoverTag.Action<?>> {
     public static final Processor PROCESSOR = new Processor();
 
     @Override
-    public Action<?> createData(@NonNull BlixxProcessor.ParserContext context, @NotNull BaseArgumentQueue args) {
+    public Action<?> createData(@NonNull BlixxProcessor.ParserContext context, @NotNull StringQueue args) {
         if (!args.hasNext()) {
             throw new IllegalStateException("Action not defined");
         }
@@ -36,13 +36,13 @@ public class HoverTag implements BlixxTag<HoverTag.Action<?>> {
         return PROCESSOR;
     }
 
-    private Action<?> parseShowText(@NotNull BaseArgumentQueue args, @NonNull BlixxProcessor.ParserContext context) {
+    private Action<?> parseShowText(@NotNull StringQueue args, @NonNull BlixxProcessor.ParserContext context) {
         String text = args.pop();
-        if (text.startsWith("\"")) {
+        if (text.startsWith("\"") || text.startsWith("'")) {
             text = text.substring(1);
         }
 
-        if (text.endsWith("\"")) {
+        if (text.endsWith("\"") || text.endsWith("'")) {
             text = text.substring(0, text.length() - 1);
         }
 
@@ -52,26 +52,27 @@ public class HoverTag implements BlixxTag<HoverTag.Action<?>> {
 
     @RequiredArgsConstructor
     @Getter
-    public abstract static class Action<T> implements Indexable {
+    public abstract static class Action<T> implements Indexable<Action<T>> {
         protected final T value;
-        protected final Object key;
 
-        public abstract void apply(StyleBuilder builder);
+        public abstract void apply(BlixxStyle style);
     }
 
-    public static class ShowText extends Action<BlixxNode> implements Indexable.WithNodeContent {
-
+    public static class ShowText extends Action<BlixxNode> implements Indexable.WithNodeContent<Action<BlixxNode>> {
         public ShowText(BlixxNode node) {
-            super(node, node.getKey());
+            super(node);
         }
 
         @Override
-        public void apply(@NotNull StyleBuilder builder) {
-            builder.hoverEvent(HoverEvent.showText(this.value.build()));
+        public void apply(@NotNull BlixxStyle style) {
+            BlixxNode actualNode = this.value instanceof BlixxPlaceholderNode
+                    ? ((BlixxPlaceholderNode) this.value).getRootNodeReplacement()
+                    : this.value;
+            style.hoverEvent(BlixxHoverEvent.showText(actualNode == null ? this.value : actualNode));
         }
 
         @Override
-        public Indexable copy() {
+        public ShowText copy() {
             return new ShowText(this.value.copy());
         }
 
@@ -85,7 +86,7 @@ public class HoverTag implements BlixxTag<HoverTag.Action<?>> {
         @Override
         public void decorate(@NotNull ComponentContext context) {
             final HoverTag.Action<?> data = context.getData();
-            data.apply(context.getStyleBuilder());
+            data.apply(context.getStyle());
         }
     }
 }

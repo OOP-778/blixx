@@ -54,6 +54,7 @@ public class IntQueue {
         if (this.size == 0) {
             throw new NoSuchElementException("Queue is empty");
         }
+
         return this.data[this.head];
     }
 

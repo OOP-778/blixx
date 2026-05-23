@@ -1,10 +1,9 @@
 package dev.oop778.blixx.api.placeholder.context;
 
 import dev.oop778.blixx.util.inheritance.InheritanceRegistry;
+import java.util.*;
 import lombok.NonNull;
 import org.jetbrains.annotations.ApiStatus;
-
-import java.util.*;
 
 @ApiStatus.Internal
 @SuppressWarnings("unchecked")
@@ -57,7 +56,7 @@ public class PlaceholderContextImpl implements PlaceholderContext {
         return new PlaceholderContextImpl(this.registry.createChildren());
     }
 
-    protected static class Composed implements PlaceholderContext {
+    public static class Composed implements PlaceholderContext {
         private final PlaceholderContext[] contexts;
 
         public Composed(PlaceholderContext[] contexts) {
@@ -102,7 +101,6 @@ public class PlaceholderContextImpl implements PlaceholderContext {
                         list.add(t);
                     }
                 }
-
             }
 
             return list;

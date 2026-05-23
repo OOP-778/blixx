@@ -4,13 +4,11 @@ import dev.oop778.blixx.api.placeholder.BlixxPlaceholder;
 import dev.oop778.blixx.api.replacer.PlaceholderHolder;
 import dev.oop778.blixx.api.replacer.action.ReplaceAction;
 import dev.oop778.blixx.api.replacer.action.ReplaceActionImpl;
-import dev.oop778.blixx.api.replacer.immutable.Replacer;
 import dev.oop778.blixx.util.UnsafeCast;
 import dev.oop778.blixx.util.collection.ComposedIterator;
+import java.util.*;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
 
 public class ComposedReplacerImpl implements ComposedReplacer {
     private final PlaceholderHolder<?>[] holders;
@@ -39,6 +37,11 @@ public class ComposedReplacerImpl implements ComposedReplacer {
     @Override
     public <T> ReplaceAction<T> accept(@NotNull T object) {
         return UnsafeCast.cast(new ReplaceActionImpl(object, this));
+    }
+
+    @Override
+    public @NotNull Iterator<BlixxPlaceholder<?>> iterator() {
+        return new ComposedIterator<>(ComposedReplacerImpl.this.composedHolders);
     }
 
     private Iterable<? extends BlixxPlaceholder<?>>[] flattenHolders(PlaceholderHolder<?>... holders) {

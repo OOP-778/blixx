@@ -1,0 +1,17 @@
+{
+    "Group": "dev.oop778",
+    "Name": "BlixxPlugin",
+    "Version": "1.0.0",
+    "Description": "Blixx text formatting library for Hytale",
+    "Authors": [
+        {
+            "Name": "OOP_778"
+        }
+    ],
+    "DisabledByDefault": false,
+    "IncludesAssetPack": false,
+    "Dependencies": {},
+    "OptionalDependencies": {},
+    "ServerVersion": "*",
+    "Main": "dev.oop778.blixx.hytale.BlixxHytalePlugin"
+}

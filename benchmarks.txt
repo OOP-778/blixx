@@ -33,3 +33,21 @@ MiniMessageBench.blixxWithKeysReplaceAndToComponent            ss       3267.100
 MiniMessageBench.blixxWithMemoryIndexParse                     ss       1695.700           us/op
 MiniMessageBench.blixxWithMemoryIndexReplaceAndToComponent     ss       2177.700           us/op
 MiniMessageBench.miniMessageWithPlaceholders                   ss       8175.800           us/op
+
+Revisit (MiniMessage 4.20.0)
+Benchmark                                                          Mode  Cnt      Score   Error   Units
+MiniMessageBench.parseReplaceToComponent                          thrpt           0.023          ops/us
+MiniMessageBench.miniMessageWithPlaceholders                      thrpt           0.002          ops/us
+MiniMessageBench.parseReplaceToComponent                           avgt          44.699           us/op
+MiniMessageBench.miniMessageWithPlaceholders                       avgt         561.393           us/op
+MiniMessageBench.parseReplaceToComponent                             ss        2522.209           us/op
+MiniMessageBench.miniMessageWithPlaceholders                         ss        4889.125           us/op
+
+Revisit (MiniMessage 5.1.1)
+Benchmark                                                          Mode  Cnt      Score   Error   Units
+MiniMessageBench.parseReplaceToComponent                          thrpt           0.024          ops/us
+MiniMessageBench.miniMessageWithPlaceholders                      thrpt           0.003          ops/us
+MiniMessageBench.parseReplaceToComponent                           avgt          44.313           us/op
+MiniMessageBench.miniMessageWithPlaceholders                       avgt         362.002           us/op
+MiniMessageBench.parseReplaceToComponent                             ss        2193.292           us/op
+MiniMessageBench.miniMessageWithPlaceholders                         ss        3632.708           us/op
