@@ -33,6 +33,7 @@ allprojects {
 
     apply {
         plugin("java-library")
+        plugin("maven-publish")
         plugin("signing")
     }
 
