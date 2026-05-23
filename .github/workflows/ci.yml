@@ -18,4 +18,4 @@ jobs:
             8
             21
       - uses: gradle/actions/setup-gradle@v4
-      - run: ./gradlew build -x :hytale:build
+      - run: chmod +x gradlew && ./gradlew build -x :hytale:build
