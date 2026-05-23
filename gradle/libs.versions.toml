@@ -20,3 +20,4 @@ adventure-platform-bukkit = { module = "net.kyori:adventure-platform-bukkit", ve
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
 jmh-generator = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh" }
+hytale-server = { module = "com.hypixel.hytale:Server", version = "latest.integration" }

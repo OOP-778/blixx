@@ -1,10 +1,8 @@
 plugins {
-    id 'java-library'
     id("io.github.goooler.shadow")
 }
 
 repositories {
-    mavenCentral()
     maven {
         setUrl("https://maven.hytale.com/release")
     }
@@ -14,25 +12,17 @@ configurations {
     hytaleServer
 }
 
-dependencies {
-    api(project(":api"))
-    api(project(":"))
-    compileOnly("com.hypixel.hytale:Server:latest.integration")
-    hytaleServer("com.hypixel.hytale:Server:latest.integration")
-
-    compileOnly 'org.jetbrains:annotations:26.0.1'
-}
-
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
-tasks.withType(JavaCompile).configureEach {
-    javaCompiler = javaToolchains.compilerFor {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
+dependencies {
+    api(project(":api"))
+    api(project(":"))
+    compileOnly(libs.hytale.server)
+    hytaleServer(libs.hytale.server)
 }
 
 tasks.register('runServer') {
@@ -44,7 +34,6 @@ tasks.register('runServer') {
         def serverDir = project.file("run")
         serverDir.mkdirs()
 
-        // Copy shadow jar (with all dependencies) to mods directory
         def modsDir = new File(serverDir, "mods")
         modsDir.mkdirs()
         project.copy {
@@ -52,7 +41,6 @@ tasks.register('runServer') {
             into modsDir
         }
 
-        // Copy Assets.zip from Hytale installation if not present
         def assetsFile = new File(serverDir, "Assets.zip")
         if (!assetsFile.exists()) {
             def os = System.getProperty("os.name").toLowerCase()
@@ -78,12 +66,10 @@ tasks.register('runServer') {
             }
         }
 
-        // Resolve the server jar
         def serverJar = configurations.hytaleServer.singleFile
 
-        // Use Java 25 toolchain launcher
         def javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(25)
+            languageVersion = JavaLanguageVersion.of(21)
         }.get()
 
         project.exec {
