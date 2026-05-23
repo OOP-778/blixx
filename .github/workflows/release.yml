@@ -3,6 +3,11 @@ name: Release
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (without v prefix)'
+        required: true
 
 jobs:
   publish:
@@ -17,9 +22,10 @@ jobs:
             21
       - uses: gradle/actions/setup-gradle@v4
       - run: |
-          export VERSION="${GITHUB_REF_NAME#v}"
+          export VERSION="${{ inputs.version || '' }}"
+          if [ -z "$VERSION" ]; then VERSION="${GITHUB_REF_NAME#v}"; fi
           chmod +x gradlew
-          ./gradlew publish -x :hytale:publish
+          ./gradlew publish
         env:
           CI: true
           SIGN_KEY: ${{ secrets.SIGN_KEY }}
